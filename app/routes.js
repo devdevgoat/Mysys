@@ -1,5 +1,5 @@
 // app/routes.js
-module.exports = function(app, passport) {
+module.exports = function(app, passport,multer) {
 
 	// =====================================
 	// HOME PAGE (with login links) ========
@@ -90,16 +90,7 @@ module.exports = function(app, passport) {
 	// =====================================
 	// file up ==============================
 	// =====================================
-	var multer  =   require('multer');
-	var storage =   multer.diskStorage({
-	  destination: function (req, file, callback) {
-	    callback(null, './src/img/player_imgs');
-	  },
-	  filename: function (req, file, callback) {
-	    callback(null, Date.now() +'_'+ file.originalname);
-	  }
-	});
-	var upload = multer({ storage : storage}).single('avatar');
+
 
 	app.get('/create_player',isLoggedIn, function(req,res){
 		
@@ -119,14 +110,19 @@ module.exports = function(app, passport) {
 		});
 	});
 
-	app.post('/create_player',isLoggedIn, function(req,res){
+	var multipartUpload = multer({storage: multer.diskStorage({
+	    destination: function (req, file, callback) { 
+	    	callback(null, './src/img/player_imgs/');
+	    },
+	    filename: function (req, file, callback) { 
+	    	callback(null, req.user.id + '-' + Date.now()  + '-' + file.originalname);
+	    }})
+		}).single('avatar');
+
+	app.post('/create_player',isLoggedIn,multipartUpload, function(req,res){
 		console.log('-------------req',req.file);
-    	upload(req,res,function(err) {
-        if(err) {
-            return res.end("Error uploading file."+err);
-        }
-        
-        var details = {
+		var fileName = req.user.id + '-' + req.body.playerName + '-' + req.file.originalname;
+		var details = {
         	stat: 'true',
         	userId: req.user.id,
 			playerName: req.body.playerName,
@@ -136,13 +132,13 @@ module.exports = function(app, passport) {
 			IMG : req.file.filename,
 			INFO : req.body.info
 			};
+    	console.log(details);
 		res.render('create_player.ejs', {
 			user : req.user ,// get the user out of session and pass to template
 			data : details
 		});
 
-   		//res.redirect('/player_selection'); //need to move to ejs
-		});
+
 
 	});
 
