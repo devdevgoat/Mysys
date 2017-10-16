@@ -1,0 +1,57 @@
+<html>
+	<link rel="stylesheet" type="text/css" href="/src/css/player_card.css">
+	<script src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+ 	<script>
+    
+    var socket = io();
+    	var details = {
+        	stat: <%= data.stat%>,
+        	userId: <%= data.userId%>,
+			player_name: '<%= data.playerName%>',
+			PE : <%=data.PE%>,
+			ME : <%=data.ME%>,
+			SE : <%=data.SE%>,
+			IMG : '<%= data.img %>',
+			INFO : '<%= data.info %>'
+			};
+		if(details.stat){
+			socket.emit('create player',details);
+			socket.on('created!',function () {
+				window.location = "/player_selection";
+			})
+		}
+
+    $(document).ready(function(){
+    	$("#stats input:lt(2)").on("change", function() {
+		    var other = $("#stats input:lt(2)").not(this).val();
+		    if (other.length)
+		        $("#stats input:eq(2)").val(100 - this.value - other);
+		});
+    });
+
+    if(details.stat){
+			
+			
+		}
+    </script>
+
+<body>
+		<form id="frmUploader" enctype="multipart/form-data"  method="post">
+        	<input type="file" name="avatar" /><br/>
+        	<input type="text" name="playerName" size="20"><br />
+        	<div id=stats>
+				<input type="text" name="peStat" size="20"> Phsysical Energy<br />
+				<input type="text" name="meStat" size="20"> Mental Energy<br />
+				<input type="text" name="seStat" size="20"> Super Energy<br />
+			</div>
+        	<label>Player Backstory (2000 words): </label><br/>
+        	<textarea form="frmUploader" name="info"></textarea><br/>
+        	<input type="submit" name="submit" id="btnSubmit" value="Upload" /> 
+        </form>
+
+		
+
+		
+</body>
+</html>

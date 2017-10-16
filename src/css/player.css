@@ -1,0 +1,210 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+body { 
+  font-family: 'Open Sans', sans-serif;
+  color: black;
+}
+
+/* STRUCTURE */
+
+#pagewrap {
+	padding: 5px;
+	width: 1080px;
+	margin: 10px auto;
+}
+header {
+	height: 100px;
+	padding: 0 15px;
+}
+#party {
+	width: 290px;
+	float: left;
+	padding: 5px 15px;
+}
+
+#feed {
+	width: 50%; /* Account for margins + border values */
+	float: left;
+	padding: 5px 15px;
+	margin: 0px 5px 5px 5px;
+}
+
+#backpack {
+	width: 270px;
+	padding: 5px 15px;
+	float: left;
+}
+footer {
+	clear: both;
+	padding: 0 15px;
+}
+
+/************************************************************************************
+MEDIA QUERIES
+*************************************************************************************/
+/* for 980px or less */
+@media screen and (max-width: 980px) {
+	
+	#pagewrap {
+		width: 94%;
+	}
+	#party {
+		width: 41%;
+		padding: 1% 4%;
+	}
+	#feed {
+		width: 41%;
+		padding: 1% 4%;
+		margin: 0px 0px 5px 5px;
+		float: right;
+	}
+	
+	#backpack {
+		clear: both;
+		padding: 1% 4%;
+		width: auto;
+		float: none;
+	}
+
+	header, footer {
+		padding: 1% 4%;
+	}
+}
+
+/* for 700px or less */
+@media screen and (max-width: 600px) {
+
+	#party {
+		width: auto;
+		float: none;
+	}
+	
+	#feed {
+		width: auto;
+		float: none;
+		margin-left: 0px;
+	}
+	
+	#backpack {
+		width: auto;
+		float: none;
+	}
+
+}
+
+/* for 480px or less */
+@media screen and (max-width: 480px) {
+
+	header {
+		height: auto;
+	}
+	h1 {
+		font-size: 2em;
+	}
+
+}
+
+
+#party {
+	background: #f8f8f8;
+}
+#backpack {
+	background: #f0efef;
+}
+
+header, #party, #feed, #backpack {
+	margin-bottom: 5px;
+}
+
+#pagewrap, header, #party, #feed, #backpack, footer {
+	border: solid 1px #ccc;
+}
+
+.profile img{
+	width:100%;
+}
+
+#party .companion {
+	margin: 5px;
+	background-color: yellow;
+	width:100%;
+}
+#party .companion img {
+  width:25%;
+  margin: 0 15px 0 0;
+}
+#party .companion .health {
+
+	float: right;
+}
+
+
+#modifiers ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+
+.modTotals {
+    display: flex;
+    justify-content: space-between;
+	font-size:75px;
+}
+#modifiers img {
+    height:75px;
+}
+
+#backpack ul {
+  list-style-type: none;
+  width: auto;
+  padding:0px;
+}
+
+#backpack .equipment {
+	background-color: grey;
+}
+ 
+#backpack .name {
+  font: bold 20px/1.5 Helvetica, Verdana, sans-serif;
+}
+ 
+#backpack li img {
+  float: left;
+  margin: 0 15px 0 0;
+}
+ 
+#backpack li p {
+  font: 200 12px/1.5 Georgia, Times New Roman, serif;
+}
+#backpack .mod {
+  float:right;
+}
+ 
+#backpack li {
+  padding: 10px;
+  overflow: auto;
+}
+ 
+#backpack li:hover {
+  background: darkgray;
+  cursor: pointer;
+}
+
+#feed #item {
+	border:1px solid black;
+	background-color: beige;
+	margin:3px;
+}
+
+#feed #item p {
+	padding: 2px 10px 2px 10px;
+}
+.companion img{
+	float: left;
+}
+
+progress {
+width: 100%;
+}
+

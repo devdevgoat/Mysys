@@ -1,0 +1,197 @@
+<html>
+  <link rel="stylesheet" type="text/css" href="/src/css/imthegm.css">
+  <script src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    var g_playerToEdit = {};
+    var statsTable;
+    var socket = io();
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(getPlayers);
+
+    function getPlayers() {
+      socket.emit('get all players');
+    }
+
+    function createTable(playerId,playerStats) {
+      var chartData = [];
+      statsTable = new google.visualization.DataTable();
+        statsTable.addColumn('string', 'eType');
+      statsTable.addColumn('number', 'Remaining');
+      statsTable.addRows(playerStats);
+      drawChart(playerId);
+    }
+
+
+    function parseStats(data) {
+      chartData = [
+        ['PE', data['PE']],
+        ['ME', data['ME']],
+        ['SE', data['SE']]
+      ];
+      return chartData;
+    }
+    function drawChart(playerId) {
+      // Set chart options
+      var options = { 'width' : '250',
+            'legend':'none',
+                    'vAxis': {
+                'gridlines': {
+                    'color': 'transparent'
+                }
+            }
+          };
+
+      // Instantiate and draw our chart, passing in some options.
+      var thisId = "player"+playerId+'chart';
+      console.log(thisId);
+      var chart = new google.visualization.ColumnChart(document.getElementById(thisId));
+      chart.draw(statsTable, options);
+    }
+
+   function buildHtml(data) {
+    html = '\
+    <div id=player'+ data['player_id'] +' class="card" onclick="choosePlayer(\''+ data['player_name'] + '\','+data['player_id']+',\''+ data['session']+'\')">\
+    <input type=hidden value=' + data['session'] + '>\
+      <div class=profile>\
+        <img id=avatar src="/src/img/player_imgs/'+data['img']+'" alt="Avatar">\
+        <div class="info">\
+            <h4><b>'+data['player_name']+'</b></h4> \
+            <p>'+data['info']+'</p> \
+        <progress id=health max="100" value="'+data['LE']+'""></progrss>\
+        </div>\
+      </div>\
+      <div class=stats>\
+        <div id=modifiers> <!--http://game-icons.net/-->\
+          <ul class=modTotals>\
+            <li><img src="/src/img/biceps.svg"><span id=pmStat>'+data['PM']+'</span></li>\
+            <li><img src="/src/img/coma.svg"><span id=mmStat>'+data['MM']+'</span></li>\
+            <li><img src="/src/img/magic-palm.svg"><span id=smStat>'+data['SM']+'</span></li>\
+          </ul>\
+        </div>\
+        <div id=player'+data['player_id']+'chart class=chartContainer>\
+        </div>\
+      </div>\
+    </div>';
+    
+    $('#players').append(html);
+   }
+
+    function choosePlayer(player_name,playerId,session) {
+      // body...
+      g_playerToEdit = {
+            player_id : playerId,
+            session : session
+          };
+      //update the modal
+      $('#activeName h1').html(player_name);
+      //show the modal
+      if ( $( "#modal" ).is( ":hidden" ) ) {
+            $( "#modal" ).slideDown( "fast" );
+          } 
+    }
+
+    window.onclick = function(event) {
+      if (event.target == modal) {
+          $( "#modal" ).slideUp( "fast" );
+      }
+    }
+
+    function updateMetrics(data) {
+      var cardId = '#player'+ data['player_id'];
+      $(cardId+" #avatar").attr("src", '/src/img/player_imgs/'+data['img']);
+      $(cardId+" #health").attr("value", data['LE']);
+      $(cardId+" #pmStat").html(data['PM']);//set the modifers
+      $(cardId+" #mmStat").html(data['MM']);//set the modifers
+      $(cardId+" #smStat").html(data['SM']);//set the modifers
+    }
+
+    function updatePlayer(stats) {
+      var player = '#player' + stats['player_id'];
+      $(player +' #avatar').attr("src", '/src/img/player_imgs/'+stats['img']);
+      $(player +' #health').attr("value", stats['LE']);
+        $(player +' .status').html(stats['status']);//set the description
+      $(player +' .name').html(stats['player_name']);//set the name
+        $(player +' .info p').html(stats['info']);//set the description
+        if(stats['player_id']==profile['player_id']){
+          $('#pmStat').html(stats['PM']);//set the modifers
+        $('#mmStat').html(stats['MM']);//set the modifers
+        $('#smStat').html(stats['SM']);//set the modifers
+        }
+    }
+
+    $(document).ready(function(){
+
+    socket.on('heres your players', function (data) {
+        //alert(JSON.stringify(data));
+        for (i = 0; i < data.length; i++) {
+          buildHtml(data[i]);
+          var pData =parseStats(data[i]);
+          createTable (data[i]['player_id'],pData);
+        }
+    });
+
+    //listen for new players
+    socket.on('player joined the party', function (data) {
+          buildHtml(data);
+          var pData =parseStats(data);
+          createTable (data['player_id'],pData);
+    });
+    //listen for stats
+      socket.on('heres your stats', function (data) {
+          updateMetrics(data);
+          var pData =parseStats(data);
+          createTable(data['player_id'],pData);
+      });
+    
+      $("#updateHealth").click(function(){
+        var update = {
+          'player_id' : g_playerToEdit['player_id'],
+          'value'  : $("#updateLe").val(),
+          'session': g_playerToEdit['session']
+        };
+        socket.emit('health affected',update);
+      });
+
+      $("#updateEnergies").click(function(){
+        var update = {
+          'player_id' : g_playerToEdit['player_id'],
+          'SE'  : $("#updateSe").val(),
+          'ME'  : $("#updateMe").val(),
+          'PE'  : $("#updatePe").val(),
+          'session' : g_playerToEdit['session']
+        };
+        socket.emit('energies affected',update);
+      });
+
+
+    });
+    </script>
+
+  
+<body>
+  <div id="players">
+    
+  </div>
+  <div id=modal class=modal>
+    <div class=modal-content >
+      <div id=activeName><h1></h1></div>
+      <div id=giveItem>
+          <!--Need some sort of drop down/search, populated at load?-->
+           <input type="button" name="giveitem" id="giveitem" value="Give Item">
+      </div>
+      <div id=affectHealth>
+          <input type="text" id="updateLe">
+          <input type="button" id="updateHealth" value="Affect Health">
+      </div>
+      <div id=affectEnergies>
+          <label>ME:</label><input type="text" id="updateMe" value=0>
+          <label>PE:</label><input type="text" id="updatePe" value=0>
+          <label>SE:</label><input type="text" id="updateSe" value=0>
+          <input type="button" id="updateEnergies" value="Update Energies">
+      </div>
+    </div>
+  </div>
+</body>
+</html>

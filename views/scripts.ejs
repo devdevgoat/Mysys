@@ -1,0 +1,53 @@
+<script src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+ 	<script>
+    console.log('test');
+    $(document).ready(function(){
+    	
+    console.log('test');
+          var socket = io();
+          var playerId = <%= user.id %>;
+          
+          socket.on('got some stats',function(data){
+          	console.log(JSON.stringify(data));
+            drawChart(data['eData']);
+          });
+
+          google.charts.load('current', {'packages':['corechart']});
+          google.charts.setOnLoadCallback(getData);
+
+          function getData(){
+          	//hardcoded player1 for now
+          	socket.emit('get stats',playerId);
+          }
+
+
+           function drawChart(data) {
+           	if(typeof data === 'undefined'){
+		      		var data = ['test',40];
+		      	}
+		        // Create the data table.
+		        var tData = new google.visualization.DataTable();
+		        tData.addColumn('string', 'eType');
+		        tData.addColumn('number', 'Remaining');
+		        //replace this with the socket data avlue coming in
+		        tData.addRows(data);
+
+		        // Set chart options
+		        var options = { 
+							 	'legend':'none',
+			               		'hAxis': {
+								    'gridlines': {
+								        'color': 'transparent'
+								    }
+								}
+							};
+
+		        // Instantiate and draw our chart, passing in some options.
+		        var chart = new google.visualization.BarChart(document.getElementById('chartContainer'));
+		        chart.draw(tData, options);
+		      }
+
+    });
+    </script>

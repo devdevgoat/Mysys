@@ -1,0 +1,194 @@
+<!-- views/profile.ejs -->
+<!--
+	<%= user.id %>  
+	<%= user.username %> 
+	<%= user.password %>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+-->
+
+<html>
+	<link rel="stylesheet" type="text/css" href="/src/css/player.css">
+	<script src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+ 	<script>
+ 		var profile = {
+          	user_id : <%= user.id %>,
+          	player_id : <%= player %>
+          };
+        
+	    var statsTable;
+	    var socket = io();
+	    google.charts.load('current', {'packages':['corechart']});
+	    //load chart, the call create table
+	    google.charts.setOnLoadCallback(createTable);
+
+	    function createTable() {
+	    	var chartData = [['test',40]];
+	    	statsTable = new google.visualization.DataTable();
+	      	statsTable.addColumn('string', 'eType');
+		    statsTable.addColumn('number', 'Remaining');
+		    connectToGame();
+		    drawChart();
+	    }
+
+	    function connectToGame(){
+	    	//join the party
+	    	socket.emit('i wanna play',profile);
+	    	//socket.emit('get curr player stats',profile);
+	    }
+	    function updateGTable(data) {
+	    	  var chartData = [];
+		      statsTable = new google.visualization.DataTable();
+		      statsTable.addColumn('string', 'eType');
+		      statsTable.addColumn('number', 'Remaining');
+		      statsTable.addRows(data);
+		      drawChart(data);
+	    		}
+	    function parseStats(data) {
+	          	chartData = [
+	          		['PE', data['PE']],
+	          		['ME', data['ME']],
+	          		['SE', data['SE']]
+	          	];
+	          	return chartData;
+	          }
+	    function drawChart() {
+		    // Set chart options
+		    var options = { 
+						 	'legend':'none',
+		               		'hAxis': {
+							    'gridlines': {
+							        'color': 'transparent'
+							    }
+							}
+						};
+		    // Instantiate and draw our chart, passing in some options.
+		    var chart = new google.visualization.BarChart(document.getElementById('chartContainer'));
+		    chart.draw(statsTable, options);
+		  }
+
+		function buildCompanionHtml(compData) {
+			//need this at page load and when other players join
+			return '<div class=companion id=player'+compData['player_id']+'>\
+			 			<img id=avatar src="/src/img/player_imgs/'+compData['img']+'">\
+			 			<h3 id=name class=compName>'+compData['player_name']+'</h3>\
+			 			<p id=status class=status>'+compData['status']+'</p>\
+						<progress id="health" value="'+compData['LE']+'" max="100"></progress>\
+			 		</div>';
+
+		}
+
+		function updatePlayer(stats) {
+			var player = '#player' + stats['player_id'];
+			$(player +' #avatar').attr("src", '/src/img/player_imgs/'+stats['img']);
+			$(player +' #health').attr("value", stats['LE']);
+	  		$(player +' .status').html(stats['status']);//set the description
+			$(player +' .name').html(stats['player_name']);//set the name
+	  		$(player +' .info p').html(stats['info']);//set the description
+	  		if(stats['player_id']==profile['player_id']){
+	  			$('#pmStat').html(stats['PM']);//set the modifers
+				$('#mmStat').html(stats['MM']);//set the modifers
+				$('#smStat').html(stats['SM']);//set the modifers
+	  		}
+		}
+
+	    $(document).ready(function(){
+	    	   var thisPlayer = document.getElementById('thisPlayer');
+        	   thisPlayer.id = 'player'+profile['player_id'];
+	          //get other players
+	          socket.emit('whos playing',profile);
+	          //listen for stats
+	          socket.on('heres your stats', function (data) {
+	          	console.log('asdfghjklkjhgfds');
+	          	console.log(JSON.stringify(data));
+	          		updatePlayer(data);
+	          		updateGTable(parseStats(data));
+	          });
+	          //listen for party members
+	          socket.on('player joined the party', function (player) {
+	          	var compId = '#player'+player['player_id'];
+	          	if(!$(compId).length){
+	          		$('#party').append(buildCompanionHtml(player));
+	          	}
+	          });
+
+	          socket.on('player left party', function (player) {
+	          	var compId = '#player'+player['player_id'];
+	          	if($(compId).length){
+	          		$(compId).remove();
+	          	}
+	          });
+
+	          socket.on('feed updated', function (html) {
+	          	$('#news').prepend(html);
+				if ( $( "#item:first" ).is( ":hidden" ) ) {
+				    $( "#item" ).slideDown( "slow" );
+				  } 
+	          });
+
+	          socket.on('player updated', function (stats) {
+	          	updatePlayer(stats);
+	          });
+	          
+	    });
+    </script>
+
+	
+<body>
+	<div id=party>
+		<div id=thisPlayer class=profile>
+			<img id=avatar src="/src/img/player_imgs/unknown.png" alt="Avatar">
+			<div id=info class="info">
+			    <h2 id=name class=name><b>Loading name</b></h2> 
+			    <p>Loading info</p> 
+			<progress id="health" value="100" max="100"></progress>
+			</div>
+		</div>
+		<!-- party members get appended, first come first serve -->
+	</div>
+	<div id=feed>
+		<div class='stats'>
+ 		<div id=modifiers> <!--http://game-icons.net/-->
+ 			<ul class=modTotals>
+	 			<li><img src="/src/img/biceps.svg"><span id=pmStat>15</span></li>
+	 			<li><img src="/src/img/coma.svg"><span id=mmStat>4</span></li>
+	 			<li><img src="/src/img/magic-palm.svg"><span id=smStat>2</span></li>
+ 			</ul>
+ 		</div>
+ 		<div id=chartContainer>
+ 		</div>
+ 		<div id=news>
+ 			<div id=item>
+ 				<p>Welcome!</p>
+ 			</div>
+ 			<div id=item>
+ 				<p>Init!</p>
+ 			</div>
+
+ 		</div>
+ 	</div>
+
+	</div>
+	<div id=backpack>
+		<ul class='equipment'>
+			<li><img src="###"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>
+			<li><img src="###"><span class=name>helmet</span><span class=mod>+2m</span><p></p></li>
+			<li><img src="###"><span class=name>shoes</span><span class=mod>+3p</span><p></p></li>
+			<li><img src="###"><span class=name>bracelet</span><span class=mod>+9s</span><p></p></li>
+			<li><img src="###"><span class=name>ring</span><span class=mod>+1s</span><p></p></li>
+		</ul>
+		<ul class='items'>
+			<li><img src="###"><span class=name>potion</span><span class=effect></span></li>
+			<li><img src="###"><span class=name>potion</span><span class=effect></span></li>
+			<li><img src="###"><span class=name>umbrella</span><span class=effect></span></li>
+			<li><img src="###"><span class=name>cat toy</span><span class=effect></span></li>
+			<li><img src="###"><span class=name>pumpkin skin</span><span class=effect></span></li>
+		</ul>
+	</div>
+
+
+ 	
+</body>
+</html>
