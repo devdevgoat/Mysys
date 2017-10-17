@@ -168,23 +168,70 @@ header, #party, #feed, #backpack {
 #backpack .name {
   font: bold 20px/1.5 Helvetica, Verdana, sans-serif;
 }
- 
-#backpack li img {
+
+#backpack li {
+  margin: 10px 0px 10px 0px;
+  overflow: hidden;
+  width:100%;
+  height: 50px;
+}
+#backpack #inventory {
+  width:270px;
+  position: absolute;
+  display: inline-block;
+  float: left;
+}
+
+#backpack #inventory #thumb{
   float: left;
   margin: 0 15px 0 0;
+  height:50px;
+  width: 50px;
+}
+#invInfo {
+	width:100%;
+	height:inherit;
+	float: right;
+}
+
+
+#equipActions{
+	width: 100%;
+	height: 100%;
+	display: none;
+}
+#backpack li img {
+
+  height:100%;
 }
  
 #backpack li p {
   font: 200 12px/1.5 Georgia, Times New Roman, serif;
 }
+
+
+#equipTargets{
+	display: none
+}
+
+#backpack li:hover #equipActions {
+    display: flex;
+    justify-content: space-between;
+    background-color: white;
+    width: 100%;
+}
+#equipActions:active #equipTargets {
+    display: inline-flex;
+    background-color: blue;
+    width: 270px;
+}
+
+
 #backpack .mod {
   float:right;
 }
  
-#backpack li {
-  padding: 10px;
-  overflow: auto;
-}
+
  
 #backpack li:hover {
   background: darkgray;

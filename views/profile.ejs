@@ -81,6 +81,12 @@
 
 		}
 
+		function buildItemHtml(items) {
+			//need this at page load and when other players join
+			html = '<li><img src="###"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>';
+
+		}
+
 		function updatePlayer(stats) {
 			var player = '#player' + stats['player_id'];
 			$(player +' #avatar').attr("src", '/src/img/player_imgs/'+stats['img']);
@@ -173,11 +179,77 @@
 	</div>
 	<div id=backpack>
 		<ul class='equipment'>
-			<li><img src="###"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>
-			<li><img src="###"><span class=name>helmet</span><span class=mod>+2m</span><p></p></li>
-			<li><img src="###"><span class=name>shoes</span><span class=mod>+3p</span><p></p></li>
-			<li><img src="###"><span class=name>bracelet</span><span class=mod>+9s</span><p></p></li>
-			<li><img src="###"><span class=name>ring</span><span class=mod>+1s</span><p></p></li>
+			<li>
+				<div id=inventory>
+					<div id=thumb>
+						<img src="/src/img/item_imgs/unknown.svg">
+					</div>
+					<div id=invInfo>
+						<span class=name>sword</span>
+						<span class=mod>+3p</span>
+						<div id=equipActions>
+							<img src="/src/img/item_imgs/drink-me.svg"> <!--can only select as many as you have x as many targets as are selectable -->
+							<img src="/src/img/item_imgs/drop-weapon.svg">
+							<img src="/src/img/item_imgs/present.svg"> <!--can only select  as many as you have -->
+						</div>
+						<div id=equipTargets>
+							<img src="/src/img/player_img/unknown.svg">
+							<img src="/src/img/player_img/unknown.svg">
+							<img src="/src/img/player_img/unknown.svg">
+							<img src="/src/img/thumb-up.svg">
+							<img src="/src/img/cancel.svg">
+					</div>
+					</div>
+				</div>
+				<p></p>
+			</li>
+
+			<li>
+				<div id=inventory>
+					<div id=thumb>
+						<img src="/src/img/item_imgs/unknown.svg">
+					</div>
+						<span class=name>sword</span>
+						<span class=mod>+3p</span>
+				</div>
+				<div id=equipActions>
+					<img src="/src/img/item_imgs/drink-me.svg"> <!--can only select as many as you have x as many targets as are selectable -->
+					<img src="/src/img/item_imgs/drop-weapon.svg">
+					<img src="/src/img/item_imgs/present.svg"> <!--can only select  as many as you have -->
+				</div>
+				<div id=equipTargets>
+					<img src="/src/img/player_img/unknown.svg">
+					<img src="/src/img/player_img/unknown.svg">
+					<img src="/src/img/player_img/unknown.svg">
+					<img src="/src/img/thumb-up.svg">
+					<img src="/src/img/cancel.svg">
+				</div>
+				<p></p>
+			</li>
+
+			<li>
+				<div id=inventory>
+					<div id=thumb>
+						<img src="/src/img/item_imgs/unknown.svg">
+					</div>
+						<span class=name>sword</span>
+						<span class=mod>+3p</span>
+				</div>
+				<div id=equipActions>
+					<img src="/src/img/item_imgs/drink-me.svg"> <!--can only select as many as you have x as many targets as are selectable -->
+					<img src="/src/img/item_imgs/drop-weapon.svg">
+					<img src="/src/img/item_imgs/present.svg"> <!--can only select  as many as you have -->
+				</div>
+				<div id=equipTargets>
+					<img src="/src/img/player_img/unknown.svg">
+					<img src="/src/img/player_img/unknown.svg">
+					<img src="/src/img/player_img/unknown.svg">
+					<img src="/src/img/thumb-up.svg">
+					<img src="/src/img/cancel.svg">
+				</div>
+				<p></p>
+			</li>
+			
 		</ul>
 		<ul class='items'>
 			<li><img src="###"><span class=name>potion</span><span class=effect></span></li>

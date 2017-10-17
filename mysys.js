@@ -12,7 +12,7 @@ module.exports = function(io) {
 
 			set.updateInPlay(profile,socket.id,function(err){
 				if(err){
-					console.log('**** socket.on.i-wanna-play.updateInPlay1 failed:', err.message);
+					console.log('**** socket.on.i-wanna-play.updateInPlay failed:', err.message);
 				}
 			});
 
@@ -21,7 +21,15 @@ module.exports = function(io) {
 					sendStats(stats,0,true);
 					updateNewsFeed(stats['player_name'],'joined the party!','neutral');
 				} else {
-					console.log('**** socket.on.i-wanna-play failed: ',err.message);
+					console.log('**** socket.on.i-wanna-play.get.stats failed: ',err.message);
+				}
+			});
+
+			get.myItems(profile['player_id'], function (err, myItems) {
+				if(!err){
+					sendItems(myItems,0);
+				} else {
+					console.log('**** socket.on.i-wanna-play.get.myItems failed: ',err.message);
 				}
 			});
 		});
@@ -155,7 +163,7 @@ module.exports = function(io) {
 			} else {
 				console.log('sending to session ',session, ' ', stats);
 				socket.broadcast.to(session).emit('heres your stats',stats);
-				socket.emit('heres your stats',stats);
+				socket.emit('heres your stats',stats);//this sends back to the sender (gm) the new stats
 			}
 			if(isNew){
 				//build the companion divs
@@ -165,6 +173,17 @@ module.exports = function(io) {
 				socket.broadcast.emit('player updated',stats);
 			}
 		}
+
+		function sendItems(items,session) {
+			if(session==0){
+				socket.emit('heres your items',items);
+			} else {
+				console.log('sending to session ',session, ' these items:', items);
+				socket.broadcast.to(session).emit('heres your items',items);
+				socket.emit('heres your items',items); //this sends back to the sender gm the new items
+			}
+		}
+
 		function updateNewsFeed(playerName,action,type) {
 				var text = playerName + ' ' + action;
 				var html ='<div id=item class='+type+' style="display:none">'+

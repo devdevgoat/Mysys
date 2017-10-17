@@ -1,4 +1,4 @@
-//module.exports = function(mysql){
+
 	var mysql     =     require('node-mysql-helper');//require("mysql");
 	var mysqlOptions    =    {
 		connectionLimit   :   100,
@@ -91,9 +91,35 @@
 		        callback(null,players);
 		    })
 		    .catch(function(err){
-		        console.log('***** socket.on.get-all-players Failed:', err.message);
+		        console.log('***** allPlayers.query Failed:', err.message);
 		        callback(err,null);
 		    });
 	}
+	
+	exports.myItems = function (profile, callback) {
+		var sql = 'SELECT \
+					    pi.player_id,pi.item_id,\
+					    i.item_name,i.item_desc,i.mod_type,i.img,i.duration-pi.times_used as uses_remaining,\
+					    i.item_type,i.consume_word,i.min_level,i.number_of_targets,count(trx_id)\
+					FROM mysys.player_items pi inner join mysys.items i\
+					on pi.item_id = i.item_id\
+					where\
+						pi.player_id = ?\
+						and i.duration > pi.times_used\
+					group by\
+					pi.player_id,pi.item_id,\
+					i.item_name,i.item_desc,i.mod_type,i.img,i.duration-pi.times_used,\
+					i.item_type,i.consume_word,i.min_level,i.number_of_targets';
+		var ins = [profile['player_id']];
+		mysql.query(sql, ins)
+		    .then(function(myItems){
+		    	callback(null, myItems);
+		        
+		    })
+		    .catch(function(err){
+		        console.log('***** myItems.query Failed:', err.message);
+		        callback(err,null);
+	    });	
+	}
+
 	console.log('loaded player_getters');
-//}//end

@@ -52,7 +52,7 @@ CREATE TABLE  `mysys`.`players` (\
 )\
 ');
 console.log('Success: Created players!');
-
+//durattion below is number of uses a item has
 connection.query('\
 CREATE TABLE `mysys`.`items` (\
   `item_id` int(11) unsigned NOT NULL AUTO_INCREMENT,\
@@ -61,8 +61,11 @@ CREATE TABLE `mysys`.`items` (\
   `mod_type` varchar(2) NOT NULL DEFAULT \'PE\',\
   `mod_value` int(11) NOT NULL DEFAULT \'0\',\
   `img` varchar(250) NOT NULL DEFAULT \'unknown.png\',\
-  `duration` int(11) NOT NULL DEFAULT \'9999\',\
-  `type` varchar(50) DEFAULT \'ITEM\',\
+  `duration` int(11) NOT NULL DEFAULT \'9999\',\ 
+  `item_type` varchar(50) NOT NULL DEFAULT \'ITEM\',\
+  `consume_word` varchar(45) NOT NULL DEFAULT \'used\',\
+  `min_level` int(11) NOT NULL DEFAULT \'1\',\  
+  `number_of_targets` int(11) NOT NULL DEFAULT \'1\',\
   PRIMARY KEY (`item_id`)\
 ) \
 ');
@@ -70,13 +73,15 @@ console.log('Success: Created items!');
 
 connection.query('\
 CREATE TABLE `mysys`.`player_items` (\
+  `trx_id` int(11) NOT NULL AUTO_INCREMENT,\
   `player_id` int(11) unsigned NOT NULL AUTO_INCREMENT,\
   `item_id` int(11) DEFAULT NULL,\
   `received_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\
   `reason` varchar(250) NOT NULL DEFAULT \'Unknown\',\
   `reliquished_at` timestamp NULL DEFAULT NULL,\
   `status` varchar(50) NOT NULL DEFAULT \'Normal\',\
-  PRIMARY KEY (`player_id`)\
+  `times_used` INT NOT NULL DEFAULT \'0\', \
+  PRIMARY KEY (`player_id`, `item_id` )\
 ) \
 ');
 console.log('Success: Created player_items!');
@@ -84,3 +89,11 @@ console.log('Success: Created player_items!');
 console.log('Success: Database Created!');
 
 connection.end();
+
+/*
+
+
+INSERT INTO `mysys`.`player_items` (`player_id`, `item_id`, `received_at`, `reason`, `status`, `times_used`) VALUES ('1', '2', NOW(), 'GIFT', 'NORMAL', '1');
+INSERT INTO `mysys`.`player_items` (`player_id`, `item_id`, `received_at`, `reason`, `status`, `times_used`) VALUES ('1', '3', NOW(), 'GIFT', 'NORMAL', '3');
+INSERT INTO `mysys`.`player_items` (`player_id`, `item_id`, `received_at`, `reason`, `status`, `times_used`) VALUES ('1', '4', NOW(), 'GIFT', 'NORMAL', '0');
+*/
