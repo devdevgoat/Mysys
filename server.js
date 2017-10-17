@@ -3,26 +3,23 @@
 // set up ======================================================================
 // get all the tools we need
 var express  = require('express');
+var app      = express();
+var bodyParser = require('body-parser');
+var multer = require('multer');
 var session  = require('express-session');
 var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
 var morgan = require('morgan');
-var app      = express();
 var port     = process.env.PORT || 3000;
 
 var passport = require('passport');
 var flash    = require('connect-flash');
 
+var http      =     require('http').Server(app);
+var io        =     require("socket.io")(http);
 // configuration ===============================================================
 //file storage
 
-var bodyParser = require('body-parser')
-app.use( bodyParser.json() );       // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
-  extended: true
-})); 
 // connect to our database
-
 require('./config/passport')(passport); // pass passport for configuration
 
 app.use('/src', express.static('src'));
@@ -54,14 +51,13 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 //app.listen(port);
 //console.log('The magic happens on port ' + port);
 
-// mysys code ======================================================================
-var http      =     require('http').Server(app);
-var io        =     require("socket.io")(http);
 
-require('./mysys.js')(io);
+
+
 // routes ======================================================================
-require('./app/routes.js')(app, passport,io); // load our routes and pass in our app and fully configured passport
-
+require('./app/routes.js')(app, passport,multer); // load our routes and pass in our app and fully configured passport
+// mysys code ======================================================================
+require('./mysys.js')(io);
 // launch ======================================================================
 http.listen(3000,function(){
     console.log("Listening on 3000");

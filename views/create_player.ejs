@@ -3,7 +3,7 @@
 	<script src="/socket.io/socket.io.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
  	<script>
-    
+
     var socket = io();
     	var details = {
         	stat: <%= data.stat%>,
@@ -12,8 +12,8 @@
 			PE : <%=data.PE%>,
 			ME : <%=data.ME%>,
 			SE : <%=data.SE%>,
-			IMG : '<%= data.img %>',
-			INFO : '<%= data.info %>'
+			IMG : '<%= data.IMG %>',
+			INFO : '<%= data.INFO %>'
 			};
 		if(details.stat){
 			socket.emit('create player',details);

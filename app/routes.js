@@ -1,5 +1,5 @@
 // app/routes.js
-module.exports = function(app, passport) {
+module.exports = function(app, passport,multer) {
 
 	// =====================================
 	// HOME PAGE (with login links) ========
@@ -57,10 +57,11 @@ module.exports = function(app, passport) {
 	// =====================================
 	// we will want this protected so you have to be logged in to visit
 	// we will use route middleware to verify this (the isLoggedIn function)
-	app.get('/profile/Player:playerId', isLoggedIn, function(req, res) {
+	app.get('/player/:playerId/:playerName', isLoggedIn, function(req, res) {
 		res.render('profile.ejs', {
 			user : req.user, // get the user out of session and pass to template
-			player: req.params['playerId']
+			playerName: req.params['playerName'],
+			playerId: req.params['playerId']
 		});
 	});
 
@@ -90,16 +91,7 @@ module.exports = function(app, passport) {
 	// =====================================
 	// file up ==============================
 	// =====================================
-	var multer  =   require('multer');
-	var storage =   multer.diskStorage({
-	  destination: function (req, file, callback) {
-	    callback(null, './src/img/player_imgs');
-	  },
-	  filename: function (req, file, callback) {
-	    callback(null, Date.now() +'_'+ file.originalname);
-	  }
-	});
-	var upload = multer({ storage : storage}).single('avatar');
+
 
 	app.get('/create_player',isLoggedIn, function(req,res){
 		
@@ -119,14 +111,18 @@ module.exports = function(app, passport) {
 		});
 	});
 
-	app.post('/create_player',isLoggedIn, function(req,res){
-		console.log('-------------req',req.file);
-    	upload(req,res,function(err) {
-        if(err) {
-            return res.end("Error uploading file."+err);
-        }
-        
-        var details = {
+	var multipartUpload = multer({storage: multer.diskStorage({
+	    destination: function (req, file, callback) { 
+	    	callback(null, './src/img/player_imgs/');
+	    },
+	    filename: function (req, file, callback) { 
+	    	callback(null, req.user.id + '-' + Date.now()  + '-' + file.originalname);
+	    }})
+		}).single('avatar');
+
+	app.post('/create_player',isLoggedIn,multipartUpload, function(req,res){
+		var fileName = req.user.id + '-' + req.body.playerName + '-' + req.file.originalname;
+		var details = {
         	stat: 'true',
         	userId: req.user.id,
 			playerName: req.body.playerName,
@@ -141,8 +137,7 @@ module.exports = function(app, passport) {
 			data : details
 		});
 
-   		//res.redirect('/player_selection'); //need to move to ejs
-		});
+
 
 	});
 
