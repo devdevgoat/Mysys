@@ -1,39 +1,22 @@
 module.exports = function(io) {
-	var mysql     =     require('node-mysql-helper');//require("mysql");
-	var mysqlOptions    =    {
-		connectionLimit   :   100,
-		host              :   'localhost',
-		user              :   'root',
-		password          :   'N1h0ng0@',
-		database          :   'mysys',
-		debug             :   false
-	};
-	mysql.connect(mysqlOptions);
-		require('./player_management.js')(mysql);
-		require('./player_getters.js')(mysql);
-		require('./player_setters.js')(mysql);
-		require('./session_management.js')(mysql);
+
+		var get = require('./player_getters.js');
+		var set = require('./player_setters.js');
 	//listeners
     io.on('connection',function(socket){  
 	    //log the new user
 	    console.log("A user is connected: "+socket.id);
 
-	    require('./player_communication.js')(socket);
-
 		socket.on('i wanna play', function (profile) {
 			console.log("This user wants to play:",JSON.stringify(profile));
 
-			clearOldSessions(profile, function (err, info) {
-				if(!err){
-					console.log('Cleared session ', info);
-				} else {
-					console.log('**** socket.on.i-wanna-play.clearOldSessions failed: ',err.message)
+			set.updateInPlay(profile,socket.id,function(err){
+				if(err){
+					console.log('**** socket.on.i-wanna-play.updateInPlay1 failed:', err.message);
 				}
-			}); 
+			});
 
-			updateInPlay(profile,socket.id, 1);
-
-			getStats(profile['player_id'], function (err, stats) {
+			get.stats(profile['player_id'], function (err, stats) {
 				if(!err){
 					sendStats(stats,0,true);
 					updateNewsFeed(stats['player_name'],'joined the party!','neutral');
@@ -45,7 +28,7 @@ module.exports = function(io) {
 
 		socket.on('whos playing',function(profile){
 			console.log('getting other players');
-			getOtherPlayers(profile, function (err, otherPlayers) {
+			get.otherPlayers(profile, function (err, otherPlayers) {
 				if(!err){
 					for (var i = 0; i < otherPlayers.length; i++) {
 						var aPlayer = otherPlayers[i];
@@ -60,14 +43,14 @@ module.exports = function(io) {
 		});
 
 		socket.on('who can I play as', function (userId) {
-			getMyPlayers(userId, function (err, players) {
+			get.myPlayers(userId, function (err, players) {
 				console.log('Got ',players.length,' players for user ', userId);
 			    socket.emit('heres your players',players);
 			});
 		});
 
-		socket.on('get all players', function (userId) {
-			getAllPlayers(userId,function (err, players) {
+		socket.on('get all players', function () {
+			get.allPlayers(function (err, players) {
 				if(!err){
 					console.log(players);
 			    	socket.emit('heres your players',players);
@@ -79,12 +62,46 @@ module.exports = function(io) {
 		});
 
 		socket.on('health affected',function (data) {
-			console.log('adding to health', data);
-			addLE(data);
+			console.log('health affected', data);
+			set.addLE(data, function (err,stats) {
+				get.stats(data['player_id'], function(err, stats) {
+					if(err){
+						console.log('***** set.addLE.query.getstats Failed:', err.message);
+					} else {
+						//send stats back to player and add companion div to other players
+						sendStats(stats,data['session'],false);
+						var msg ='';
+						var sentiment = '';
+						if(data['value']>0){
+							msg = ' recovered ' + data['value'] + ' health!';
+							sentiment = 'good';
+						} else {
+							msg = ' took ' + data['value'] + ' damage!';
+							sentiment = 'bad';
+						}
+						//update the feed
+						updateNewsFeed(stats['player_name'],msg,sentiment);
+					}
+				});
+			});
 		});
 
 		socket.on('energies affected',function (data) {
-			addEnergies(data);
+			console.log('energies affected', data);
+			set.addEnergies(data, function (err) {
+				if(!err){
+					get.stats(energyArray['player_id'], function(err, stats) {
+						if(err){
+							console.log('***** set.addEnergies.get.stats Failed:', err.message);
+						} else {
+							//send stats back to player and add companion div to other players
+							sendStats(stats,energyArray['session'],false);
+						}
+					});
+				} else {
+					console.log('***** set.addEnergies Failed:', err.message);
+				}
+			});
 		});
 
 
@@ -104,10 +121,10 @@ module.exports = function(io) {
 						SM:0,
 						MM:0,
 						LE:100,
-						img:details['img'],
-						info:details['info']
+						IMG:details['IMG'],
+						INFO:details['INFO']
 					};
-			createPlayer(cleanedUpDetails, details['userId'], function (err, success) {
+			set.createPlayer(cleanedUpDetails, details['userId'], function (err, success) {
 						if(!err){
 							socket.emit('created!');//tell the create page to redirect
 						} else {
@@ -118,12 +135,42 @@ module.exports = function(io) {
 		});
 
 		socket.on('disconnect', function () {
-			console.log('User disconnect:',socket.id);
-			leaveTheParty(socket.id, function (player) {
-				socket.broadcast.emit('player left the party',{user_id:player['user_id'],player_id:player['player_id']});//update the feed
-				updateNewsFeed(player['player_name'],'left the session!','neutral');
-			});
+			console.log('User disconnect:',socket.id );
+				var h = socket.request.headers.referer;
+				var i = h.indexOf('/player/');
+				if(i > -1) {
+					var player_id = h.substring(i+8,h.lastIndexOf('/'));
+					var player_name = h.substring(h.lastIndexOf('/')+1);
+					socket.emit('player left party',player_id);
+					updateNewsFeed(player_name,'left the session!','neutral');
+				}
 		});
+
+		function sendStats(stats,session,isNew) {
+			console.log('got session ',session);
+			//determine if this is coming from a player joining or a gm pushing an update
+			if(session==0){
+				socket.emit('heres your stats',stats);
+			} else {
+				console.log('sending to session ',session, ' ', stats);
+				socket.broadcast.to(session).emit('heres your stats',stats);
+				socket.emit('heres your stats',stats);
+			}
+			if(isNew){
+				//build the companion divs
+				socket.broadcast.emit('player joined the party',stats);
+			} else {
+				//update the companion divs
+				socket.broadcast.emit('player updated',stats);
+			}
+		}
+		function updateNewsFeed(playerName,action,type) {
+				var text = playerName + ' ' + action;
+				var html ='<div id=item class='+type+' style="display:none">'+
+			  			'<p>'+text+'</p>'+
+			  		  '</div>';
+				socket.broadcast.emit('feed updated',html);
+		}
 
 	});
 

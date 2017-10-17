@@ -57,10 +57,11 @@ module.exports = function(app, passport,multer) {
 	// =====================================
 	// we will want this protected so you have to be logged in to visit
 	// we will use route middleware to verify this (the isLoggedIn function)
-	app.get('/profile/Player:playerId', isLoggedIn, function(req, res) {
+	app.get('/player/:playerId/:playerName', isLoggedIn, function(req, res) {
 		res.render('profile.ejs', {
 			user : req.user, // get the user out of session and pass to template
-			player: req.params['playerId']
+			playerName: req.params['playerName'],
+			playerId: req.params['playerId']
 		});
 	});
 
@@ -120,7 +121,6 @@ module.exports = function(app, passport,multer) {
 		}).single('avatar');
 
 	app.post('/create_player',isLoggedIn,multipartUpload, function(req,res){
-		console.log('-------------req',req.file);
 		var fileName = req.user.id + '-' + req.body.playerName + '-' + req.file.originalname;
 		var details = {
         	stat: 'true',
@@ -132,7 +132,6 @@ module.exports = function(app, passport,multer) {
 			IMG : req.file.filename,
 			INFO : req.body.info
 			};
-    	console.log(details);
 		res.render('create_player.ejs', {
 			user : req.user ,// get the user out of session and pass to template
 			data : details

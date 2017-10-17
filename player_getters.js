@@ -1,6 +1,31 @@
-module.exports = (mysql){
+//module.exports = function(mysql){
+	var mysql     =     require('node-mysql-helper');//require("mysql");
+	var mysqlOptions    =    {
+		connectionLimit   :   100,
+		host              :   'localhost',
+		user              :   'root',
+		password          :   'N1h0ng0@',
+		database          :   'mysys',
+		debug             :   false
+	};
+	mysql.connect(mysqlOptions);
+	exports.myPlayers = function (userId, callback) {
+		var sql = 'select players.player_id, player_name,PE,ME,SE,PM,MM,SM,LE,img,info,status \
+				from players inner join user_has_player \
+				on players.player_id = user_has_player.player_id \
+				where user_has_player.user_id = ?';
+		var values = [userId];
+		mysql.query(sql,values)
+		.then(function(players){
+		    callback(null, players);
+		})
+		.catch(function(err){
+		    console.log('***** socket.on.who-can-i-play-as Failed:', err.message);
+		    callback(err,null);
+		});
+	}
 
-	function getSession(profile, callback) {
+	exports.session = function (profile, callback) {
     	mysql.record('user_has_player',profile)
 		    .then(function(session){
 		        callback(null,session['session']);
@@ -27,7 +52,7 @@ module.exports = (mysql){
 			});
 	}
 
-	function getStats(playerId, callback) {
+	exports.stats = function (playerId, callback) {
 		mysql.record('players',{player_id:playerId})
 			.then(function(player){
 			    console.log('check out these stats', player);
@@ -39,7 +64,7 @@ module.exports = (mysql){
 		});
 	}
 
-	function getOtherPlayers(profile, callback) {
+	exports.otherPlayers = function (profile, callback) {
 		var sql = 'select players.player_id, player_name,PE,ME,SE,PM,MM,SM,LE,img,info,status \
 					from players inner join user_has_player \
 					on players.player_id = user_has_player.player_id \
@@ -56,29 +81,12 @@ module.exports = (mysql){
 	    });	
 	}
 
-	getMyPlayers: function (userId, callback) {
-		var sql = 'select players.player_id, player_name,PE,ME,SE,PM,MM,SM,LE,img,info,status \
-				from players inner join user_has_player \
-				on players.player_id = user_has_player.player_id \
-				where user_has_player.user_id = ?';
-		var values = [userId];
-		mysql.query(sql,values)
-		.then(function(players){
-		    callback(null, players);
-		})
-		.catch(function(err){
-		    console.log('***** socket.on.who-can-i-play-as Failed:', err.message);
-		    callback(err,null);
-		});
-	}
-
-	function getAllPlayers(userId,callback) {
+	exports.allPlayers = function (callback) {
 		var sql = 'select players.player_id, player_name,PE,ME,SE,PM,MM,SM,LE,img,info,status,session \
 					from players inner join user_has_player \
 					on players.player_id = user_has_player.player_id \
 					where user_has_player.in_play = 1';
-		var values = [userId];
-		mysql.query(sql,values)
+		mysql.query(sql)
 		    .then(function(players){
 		        callback(null,players);
 		    })
@@ -88,4 +96,4 @@ module.exports = (mysql){
 		    });
 	}
 	console.log('loaded player_getters');
-}//end
+//}//end

@@ -51,7 +51,7 @@
 
 	 function buildHtml(data) {
 	 	html = '\
-	 	<div id=player'+ data['player_id'] +' class="card" onclick="choosePlayer('+data['player_id']+')">\
+	 	<div id=player'+ data['player_id'] +' class="card" onclick="choosePlayer('+data['player_id']+',\''+data['player_name']+'\')">\
 			<div class=profile>\
 				<img src="/src/img/player_imgs/'+data['img']+'" alt="Avatar">\
 				<div class="info">\
@@ -76,14 +76,14 @@
 		$('#players').append(html);
 	 }
 
-	  function choosePlayer(playerId) {
+	  function choosePlayer(playerId,playerName) {
 	  	// body...
 		var profile = {
           	user_id : <%= user.id %>,
           	player_id : playerId
           };
 
-		window.location.href = "/profile/player"+playerId;
+		window.location.href = "/player/"+playerId+"/"+playerName.split(' ').join('_');
 	  }
 
     $(document).ready(function(){

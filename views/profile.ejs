@@ -15,7 +15,8 @@
  	<script>
  		var profile = {
           	user_id : <%= user.id %>,
-          	player_id : <%= player %>
+          	player_name : '<%= playerName %>',
+          	player_id : <%= playerId %>
           };
         
 	    var statsTable;
@@ -141,7 +142,7 @@
 		<div id=thisPlayer class=profile>
 			<img id=avatar src="/src/img/player_imgs/unknown.png" alt="Avatar">
 			<div id=info class="info">
-			    <h2 id=name class=name><b>Loading name</b></h2> 
+			    <h2 id=name class=name><b><%= playerName %></b></h2> 
 			    <p>Loading info</p> 
 			<progress id="health" value="100" max="100"></progress>
 			</div>
