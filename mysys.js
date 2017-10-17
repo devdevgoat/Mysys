@@ -141,7 +141,8 @@ module.exports = function(io) {
 				if(i > -1) {
 					var player_id = h.substring(i+8,h.lastIndexOf('/'));
 					var player_name = h.substring(h.lastIndexOf('/')+1);
-					socket.emit('player left party',player_id);
+					console.log('id:',player_id,' name:',player_name);
+					socket.broadcast.emit('player left party',parseInt(player_id));
 					updateNewsFeed(player_name,'left the session!','neutral');
 				}
 		});

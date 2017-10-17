@@ -36,7 +36,7 @@
 
 	    function connectToGame(){
 	    	//join the party
-	    	socket.emit('i wanna play',profile);
+	    	socket.emit('i wanna play',{user_id:profile['user_id'],player_id:profile['player_id']});
 	    	//socket.emit('get curr player stats',profile);
 	    }
 	    function updateGTable(data) {
@@ -99,11 +99,10 @@
 	    	   var thisPlayer = document.getElementById('thisPlayer');
         	   thisPlayer.id = 'player'+profile['player_id'];
 	          //get other players
-	          socket.emit('whos playing',profile);
+	          socket.emit('whos playing',{user_id:profile['user_id'],player_id:profile['player_id']});
 	          //listen for stats
 	          socket.on('heres your stats', function (data) {
-	          	console.log('asdfghjklkjhgfds');
-	          	console.log(JSON.stringify(data));
+	          		console.log(JSON.stringify(data));
 	          		updatePlayer(data);
 	          		updateGTable(parseStats(data));
 	          });
@@ -115,11 +114,11 @@
 	          	}
 	          });
 
-	          socket.on('player left party', function (player) {
-	          	var compId = '#player'+player['player_id'];
-	          	if($(compId).length){
+	          socket.on('player left party', function (player_id) {
+	          	console.log('pid:'+player_id);
+	          	var compId = '#player'+player_id;
+	          		$(compId).slideUp("slow");
 	          		$(compId).remove();
-	          	}
 	          });
 
 	          socket.on('feed updated', function (html) {
