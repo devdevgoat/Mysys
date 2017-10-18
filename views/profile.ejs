@@ -9,8 +9,10 @@
 
 <html>
 	<link rel="stylesheet" type="text/css" href="/src/css/player.css">
+	<link rel="stylesheet" type="text/css" href="/src/css/image-picker.css">
 	<script src="/socket.io/socket.io.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="/src/js/image-picker.min.js"></script>
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
  	<script>
  		var profile = {
@@ -101,6 +103,42 @@
 	  		}
 		}
 
+		function itemAction(itemId,action) {
+	          	switch(action){
+	          		case 'use':
+	          		$("#targetsMenu").each(function (action) {
+	          			$( this ).id = action + '-' + $( this ).id;
+	          		});
+			        $("#targetsMenu").toggle(); //show the selection list
+			        break;
+			    case 'give':
+			        $("#targetsMenu").toggle(); //show the selection list
+			        break;
+			    default:
+			        //drop
+			        socket.emit('drop item', itemId);
+	          	}
+	          }
+
+	    function targetPlayer(code) {
+	    	var inputs = code.split("-");
+	    	var item = 	inputs[0];
+	    	var action=inputs[1];
+	    	var player=inputs[2];
+	    	//store target in array
+	    	//decrement total targets available
+	    	//
+	          	if(player = 'no'){
+	          		$("#targetsMenu").toggle(); 
+	          		//clear array
+	          	}
+	          	if(player = 'yes'){
+	          		socket.emit('')
+	          		$("#targetsMenu").toggle(); 
+
+	          	}
+	    }
+
 	    $(document).ready(function(){
 	    	   var thisPlayer = document.getElementById('thisPlayer');
         	   thisPlayer.id = 'player'+profile['player_id'];
@@ -137,6 +175,9 @@
 	          socket.on('player updated', function (stats) {
 	          	updatePlayer(stats);
 	          });
+
+
+	          $("select").imagepicker()
 	          
 	    });
     </script>
@@ -179,84 +220,34 @@
 	</div>
 	<div id=backpack>
 		<ul class='equipment'>
-			<li>
-				<div id=inventory>
-					<div id=thumb>
-						<img src="/src/img/item_imgs/unknown.svg">
-					</div>
-					<div id=invInfo>
-						<span class=name>sword</span>
-						<span class=mod>+3p</span>
-						<div id=equipActions>
-							<img src="/src/img/item_imgs/drink-me.svg"> <!--can only select as many as you have x as many targets as are selectable -->
-							<img src="/src/img/item_imgs/drop-weapon.svg">
-							<img src="/src/img/item_imgs/present.svg"> <!--can only select  as many as you have -->
-						</div>
-						<div id=equipTargets>
-							<img src="/src/img/player_img/unknown.svg">
-							<img src="/src/img/player_img/unknown.svg">
-							<img src="/src/img/player_img/unknown.svg">
-							<img src="/src/img/thumb-up.svg">
-							<img src="/src/img/cancel.svg">
-					</div>
-					</div>
+			<li class=equipment>
+			<img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p>
+				<div id=actionMenu>
+					<input id="1" type="button" name="btn_use" value="Use" onclick="itemAction(this.id,'use')">
+					<input id="2" type="button" name="btn_give" value="Give" onclick="itemAction(this.id,'give')">
+					<input id="3" type="button" name="btn_drop" value="Drop" onclick="itemAction(this.id, 'drop')">
 				</div>
-				<p></p>
+				<div id=targetsMenu>
+				<select  data-limit="2" multiple="multiple">
+					<option data-img-src='/src/img/player_imgs/unknown.png' value='42'></option>
+					<option data-img-src='/src/img/player_imgs/unknown.png' value='23'></option>
+					<option data-img-src='/src/img/item_imgs/unknown.svg' value='11'></option>
+					<option data-img-src='/src/img/item_imgs/unknown.svg' value='2'></option>
+				</select>
+				<img src="/src/img/item_imgs/cancel.svg">
+				<img src="/src/img/item_imgs/thumb-up.svg">
+				</div>
 			</li>
-
-			<li>
-				<div id=inventory>
-					<div id=thumb>
-						<img src="/src/img/item_imgs/unknown.svg">
-					</div>
-						<span class=name>sword</span>
-						<span class=mod>+3p</span>
-				</div>
-				<div id=equipActions>
-					<img src="/src/img/item_imgs/drink-me.svg"> <!--can only select as many as you have x as many targets as are selectable -->
-					<img src="/src/img/item_imgs/drop-weapon.svg">
-					<img src="/src/img/item_imgs/present.svg"> <!--can only select  as many as you have -->
-				</div>
-				<div id=equipTargets>
-					<img src="/src/img/player_img/unknown.svg">
-					<img src="/src/img/player_img/unknown.svg">
-					<img src="/src/img/player_img/unknown.svg">
-					<img src="/src/img/thumb-up.svg">
-					<img src="/src/img/cancel.svg">
-				</div>
-				<p></p>
-			</li>
-
-			<li>
-				<div id=inventory>
-					<div id=thumb>
-						<img src="/src/img/item_imgs/unknown.svg">
-					</div>
-						<span class=name>sword</span>
-						<span class=mod>+3p</span>
-				</div>
-				<div id=equipActions>
-					<img src="/src/img/item_imgs/drink-me.svg"> <!--can only select as many as you have x as many targets as are selectable -->
-					<img src="/src/img/item_imgs/drop-weapon.svg">
-					<img src="/src/img/item_imgs/present.svg"> <!--can only select  as many as you have -->
-				</div>
-				<div id=equipTargets>
-					<img src="/src/img/player_img/unknown.svg">
-					<img src="/src/img/player_img/unknown.svg">
-					<img src="/src/img/player_img/unknown.svg">
-					<img src="/src/img/thumb-up.svg">
-					<img src="/src/img/cancel.svg">
-				</div>
-				<p></p>
-			</li>
+			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>
+			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>
 			
 		</ul>
 		<ul class='items'>
-			<li><img src="###"><span class=name>potion</span><span class=effect></span></li>
-			<li><img src="###"><span class=name>potion</span><span class=effect></span></li>
-			<li><img src="###"><span class=name>umbrella</span><span class=effect></span></li>
-			<li><img src="###"><span class=name>cat toy</span><span class=effect></span></li>
-			<li><img src="###"><span class=name>pumpkin skin</span><span class=effect></span></li>
+			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>potion</span><span class=effect></span></li>
+			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>potion</span><span class=effect></span></li>
+			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>umbrella</span><span class=effect></span></li>
+			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>cat toy</span><span class=effect></span></li>
+			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>pumpkin skin</span><span class=effect></span></li>
 		</ul>
 	</div>
 

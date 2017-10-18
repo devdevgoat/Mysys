@@ -45,6 +45,11 @@ module.exports = function(app, passport,multer) {
 		res.render('signup.ejs', { message: req.flash('signupMessage') });
 	});
 
+	app.get('/test', function(req, res) {
+		// render the page and pass in any flash data if it exists
+		res.render('test.ejs');
+	});
+
 	// process the signup form
 	app.post('/signup', passport.authenticate('local-signup', {
 		successRedirect : '/player_selection', // redirect to the secure profile section
