@@ -1,0 +1,3 @@
+build for loop for items function
+append
+validate that players and items don t double generate options

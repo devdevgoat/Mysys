@@ -20,7 +20,7 @@
           	player_name : '<%= playerName %>',
           	player_id : <%= playerId %>
           };
-        
+        var currentPlayers = {};
 	    var statsTable;
 	    var socket = io();
 	    google.charts.load('current', {'packages':['corechart']});
@@ -84,9 +84,45 @@
 		}
 
 		function buildItemHtml(items) {
-			//need this at page load and when other players join
-			html = '<li><img src="###"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>';
+			//only called when adding an item
+			//itterate through players
+			//player array
+			var targets = getPlayers('all');
+			var optHtml = '';
+			$.each(currentPlayers, function( key, value ) {
+			  optHtml += '<option data-img-src="/src/img/player_imgs/'+value[0]+'" value="'+ key + '">'+ value[1] +'</option>';
+			});
 
+			//build this for each item 
+			html = '<li class=equipment>\
+						<img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p>\
+							<div id=actionMenu>\
+								<input id="'+ + '" type="button" name="btn_use" value="Use" onclick="itemAction(this.id,"use")">\
+								<input id="'+ + '" type="button" name="btn_give" value="Give" onclick="itemAction(this.id,"give")">\
+								<input id="'+ + '" type="button" name="btn_drop" value="Drop" onclick="itemAction(this.id, "drop")">\
+							</div>\
+							<div id=targetsMenu>\
+							<select  data-limit="'+ + '" multiple="multiple">';
+			html += ''; //players here
+			html += '		</select>\
+							<img src="/src/img/item_imgs/cancel.svg">\
+							<img src="/src/img/item_imgs/thumb-up.svg">\
+							</div>\
+						</li>';
+			//append to backpack
+		}
+
+
+		function addPlayerToItems(player) {
+			html = '<option data-img-src="/src/img/player_imgs/'+ player['img'] +
+					'" value="'+ player['player_id'] + '">'+player['player_name']+'</option>';
+				$('select').append(html);
+			$("select").imagepicker()
+		}
+
+		function getPlayers(which) {
+			
+			return players;
 		}
 
 		function updatePlayer(stats) {
@@ -106,9 +142,6 @@
 		function itemAction(itemId,action) {
 	          	switch(action){
 	          		case 'use':
-	          		$("#targetsMenu").each(function (action) {
-	          			$( this ).id = action + '-' + $( this ).id;
-	          		});
 			        $("#targetsMenu").toggle(); //show the selection list
 			        break;
 			    case 'give':
@@ -142,8 +175,13 @@
 	    $(document).ready(function(){
 	    	   var thisPlayer = document.getElementById('thisPlayer');
         	   thisPlayer.id = 'player'+profile['player_id'];
-	          //get other players
-	          socket.emit('whos playing',{user_id:profile['user_id'],player_id:profile['player_id']});
+        	   socket.on('heres your items', function (items) {
+	        	   	
+        	   		//get players after items
+        	   		//get other players
+	         		 socket.emit('whos playing',{user_id:profile['user_id'],player_id:profile['player_id']});
+        	   })
+	          
 	          //listen for stats
 	          socket.on('heres your stats', function (data) {
 	          		console.log(JSON.stringify(data));
@@ -151,18 +189,23 @@
 	          		updateGTable(parseStats(data));
 	          });
 	          //listen for party members
+	          //
 	          socket.on('player joined the party', function (player) {
-	          	var compId = '#player'+player['player_id'];
-	          	if(!$(compId).length){
+	          	if(!$(compId).length){ //only add new players
+	          		var compId = '#player'+player['player_id'];
 	          		$('#party').append(buildCompanionHtml(player));
+	          		addPlayerToItems(player);
+	          		currentPlayers[player['player_id']] = [player['player_name'],player['img']] ;
 	          	}
 	          });
 
 	          socket.on('player left party', function (player_id) {
+	          	//iterate through the items currently there
 	          	console.log('pid:'+player_id);
 	          	var compId = '#player'+player_id;
 	          		$(compId).slideUp("slow");
 	          		$(compId).remove();
+	          		delete currentPlayers[compId];
 	          });
 
 	          socket.on('feed updated', function (html) {
@@ -175,9 +218,6 @@
 	          socket.on('player updated', function (stats) {
 	          	updatePlayer(stats);
 	          });
-
-
-	          $("select").imagepicker()
 	          
 	    });
     </script>
@@ -229,10 +269,6 @@
 				</div>
 				<div id=targetsMenu>
 				<select  data-limit="2" multiple="multiple">
-					<option data-img-src='/src/img/player_imgs/unknown.png' value='42'></option>
-					<option data-img-src='/src/img/player_imgs/unknown.png' value='23'></option>
-					<option data-img-src='/src/img/item_imgs/unknown.svg' value='11'></option>
-					<option data-img-src='/src/img/item_imgs/unknown.svg' value='2'></option>
 				</select>
 				<img src="/src/img/item_imgs/cancel.svg">
 				<img src="/src/img/item_imgs/thumb-up.svg">
