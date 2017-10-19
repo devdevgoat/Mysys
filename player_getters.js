@@ -20,7 +20,7 @@
 		    callback(null, players);
 		})
 		.catch(function(err){
-		    console.log('***** socket.on.who-can-i-play-as Failed:', err.message);
+		    console.log('***** getters.socket.on.who-can-i-play-as Failed:', err.message);
 		    callback(err,null);
 		});
 	}
@@ -31,7 +31,7 @@
 		        callback(null,session['session']);
 		    })
 		    .catch(function(err){
-		        console.log('***** getSession Failed:', err.message);
+		        console.log('***** getters.getSession Failed:', err.message);
 		        callback(err, null);
 		    });
     }
@@ -47,7 +47,7 @@
 				} 
 			})
 			.catch(function(err){
-			    console.log('***** getProfile Failed:', err.message);
+			    console.log('***** getters.getProfile Failed:', err.message);
 			    callback(err, null);
 			});
 	}
@@ -59,7 +59,7 @@
 			    callback(null,player);
 			})
 			.catch(function(err){
-			    console.log('***** GetStats Failed:', err.message);
+			    console.log('***** getters.GetStats Failed:', err.message);
 			    callback(err, null);
 		});
 	}
@@ -76,7 +76,7 @@
 		        
 		    })
 		    .catch(function(err){
-		        console.log('***** socket.on.whos-playing Failed:', err.message);
+		        console.log('***** getters.socket.on.whos-playing Failed:', err.message);
 		        callback(err,null);
 	    });	
 	}
@@ -91,33 +91,49 @@
 		        callback(null,players);
 		    })
 		    .catch(function(err){
-		        console.log('***** allPlayers.query Failed:', err.message);
+		        console.log('***** getters.allPlayers.query Failed:', err.message);
+		        callback(err,null);
+		    });
+	}
+
+	exports.item = function (itemKey, callback) {
+		var where = {
+			item_id: itemKey['item_id']
+		};
+		mysql.record('items',where)
+		    .then(function(item){
+		        callback(null,item);
+		    })
+		    .catch(function(err){
+		        console.log('***** getters.item.record Failed:', err.message);
 		        callback(err,null);
 		    });
 	}
 	
-	exports.myItems = function (profile, callback) {
+	exports.myItems = function (playerId, callback) {
 		var sql = 'SELECT \
-					    pi.player_id,pi.item_id,\
-					    i.item_name,i.item_desc,i.mod_type,i.img,i.duration-pi.times_used as uses_remaining,\
+					    pi.trx_id,pi.player_id,pi.item_id,\
+					    i.item_name,i.item_desc,i.mod_type,i.mod_value,i.img,i.duration-pi.times_used as uses_remaining,\
 					    i.item_type,i.consume_word,i.min_level,i.number_of_targets,count(trx_id)\
 					FROM mysys.player_items pi inner join mysys.items i\
 					on pi.item_id = i.item_id\
 					where\
 						pi.player_id = ?\
 						and i.duration > pi.times_used\
+						 and pi.reliquished_at is null\
 					group by\
 					pi.player_id,pi.item_id,\
 					i.item_name,i.item_desc,i.mod_type,i.img,i.duration-pi.times_used,\
 					i.item_type,i.consume_word,i.min_level,i.number_of_targets';
-		var ins = [profile['player_id']];
+		var ins = [playerId];
 		mysql.query(sql, ins)
 		    .then(function(myItems){
+		    	console.log(sql,'|',ins,'|',myItems);
 		    	callback(null, myItems);
 		        
 		    })
 		    .catch(function(err){
-		        console.log('***** myItems.query Failed:', err.message);
+		        console.log('***** getters.myItems.query Failed:', err.message);
 		        callback(err,null);
 	    });	
 	}

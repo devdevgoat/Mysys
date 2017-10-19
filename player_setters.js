@@ -1,3 +1,4 @@
+var moment = require('moment');
 var mysql     =     require('node-mysql-helper');//require("mysql");
 var mysqlOptions    =    {
 	connectionLimit   :   100,
@@ -110,6 +111,23 @@ exports.leaveTheParty = function (session, callback) {
 			console.log('***** set.leaveTheParty.query Failed:', err.message);
 			callback(err,null);
 		});	
+}
+
+
+
+exports.dropItem = function (itemKey, callback) {
+	var upd = {
+		reliquished_at : moment().format("YYYY-MM-DD HH:mm:ss")
+	};
+	console.log(itemKey);
+	mysql.update('player_items', itemKey, upd)
+	.then(function(info){
+		callback(null, info);
+	})
+	.catch(function(err){
+		console.log('***** set.dropItem.update Failed:', err.message);
+		callback(err,null);
+	});	
 }
 
 console.log('loaded player_setters');

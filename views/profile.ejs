@@ -87,29 +87,30 @@
 			//only called when adding an item
 			//itterate through players
 			//player array
-			var targets = getPlayers('all');
 			var optHtml = '';
-			$.each(currentPlayers, function( key, value ) {
-			  optHtml += '<option data-img-src="/src/img/player_imgs/'+value[0]+'" value="'+ key + '">'+ value[1] +'</option>';
-			});
-
-			//build this for each item 
-			html = '<li class=equipment>\
-						<img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p>\
-							<div id=actionMenu>\
-								<input id="'+ + '" type="button" name="btn_use" value="Use" onclick="itemAction(this.id,"use")">\
-								<input id="'+ + '" type="button" name="btn_give" value="Give" onclick="itemAction(this.id,"give")">\
-								<input id="'+ + '" type="button" name="btn_drop" value="Drop" onclick="itemAction(this.id, "drop")">\
-							</div>\
-							<div id=targetsMenu>\
-							<select  data-limit="'+ + '" multiple="multiple">';
-			html += ''; //players here
-			html += '		</select>\
-							<img src="/src/img/item_imgs/cancel.svg">\
-							<img src="/src/img/item_imgs/thumb-up.svg">\
-							</div>\
-						</li>';
-			//append to backpack
+			$.each(items,function (key,val) {
+				$.each(currentPlayers, function( key, value ) {
+				  optHtml += '<option data-img-src="/src/img/player_imgs/'+value[0]+'" value="'+ key + '">'+ value[1] +'</option>';
+				});
+					//build this for each item 
+				html = '<li class=equipment'+val['item_id']+'>\
+							<img src="/src/img/item_imgs/unknown.svg"><span class=name>'+ val['item_name'] +'</span><span class=mod>'+ val['mod_value'] + val['mod_type'] +'</span><p>'+ val['item_desc'] +'</p>\
+								<div id=actionMenu>\
+									<input type="button" name="btn_use" value="Use" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] + ', \'use\')">\
+									<input type="button" name="btn_give" value="Give" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] +', \'give\')">\
+									<input type="button" name="btn_drop" value="Drop" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] + ', \'drop\')">\
+								</div>\
+								<div id=targetsMenu-'+ val['item_id'] +' style="display:none;">\
+								<select  data-limit="'+ val['number_of_targets'] + '" multiple="multiple">';
+				html += optHtml; //new items will result in optHtml, but items at load will not. Will generate optHtml as players join
+				html += '		</select>\
+								<img src="/src/img/item_imgs/cancel.svg">\
+								<img src="/src/img/item_imgs/thumb-up.svg">\
+								</div>\
+							</li>';
+				//append to backpack
+				$('ul.equipment').append(html);
+				});
 		}
 
 
@@ -139,17 +140,30 @@
 	  		}
 		}
 
-		function itemAction(itemId,action) {
+		function itemAction(trxId,playerId,itemId,action) {
+			var itemKey = {
+				trx_id:trxId,
+				player_id:playerId,
+				item_id:itemId
+			};
 	          	switch(action){
 	          		case 'use':
-			        $("#targetsMenu").toggle(); //show the selection list
+			    	console.log('using:'+JSON.stringify(itemKey));
+			        $("#targetsMenu-"+itemId).toggle(); //show the selection list
 			        break;
 			    case 'give':
-			        $("#targetsMenu").toggle(); //show the selection list
+			    	console.log('giving:'+JSON.stringify(itemKey));
+			        $("#targetsMenu-"+itemId).toggle(); //show the selection list
+			        break;
+			    case 'drop':
+			    	//drop
+			    	console.log('dropping:'+JSON.stringify(itemKey));
+			        socket.emit('dropped item', profile, itemKey);
+			        $('.equipment'+itemId).remove();
 			        break;
 			    default:
-			        //drop
-			        socket.emit('drop item', itemId);
+			        console.log('cant do ' + action);
+
 	          	}
 	          }
 
@@ -162,12 +176,12 @@
 	    	//decrement total targets available
 	    	//
 	          	if(player = 'no'){
-	          		$("#targetsMenu").toggle(); 
+	          		$("#targetsMenu-"+item).toggle(); 
 	          		//clear array
 	          	}
 	          	if(player = 'yes'){
 	          		socket.emit('')
-	          		$("#targetsMenu").toggle(); 
+	          		$("#targetsMenu-"+item).toggle(); 
 
 	          	}
 	    }
@@ -176,7 +190,7 @@
 	    	   var thisPlayer = document.getElementById('thisPlayer');
         	   thisPlayer.id = 'player'+profile['player_id'];
         	   socket.on('heres your items', function (items) {
-	        	   	
+	        	   	buildItemHtml(items);
         	   		//get players after items
         	   		//get other players
 	         		 socket.emit('whos playing',{user_id:profile['user_id'],player_id:profile['player_id']});
@@ -274,8 +288,8 @@
 				<img src="/src/img/item_imgs/thumb-up.svg">
 				</div>
 			</li>
-			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>
-			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>
+			<!--<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>
+			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>-->
 			
 		</ul>
 		<ul class='items'>
