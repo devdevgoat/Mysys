@@ -144,16 +144,22 @@ module.exports = function(io) {
 		});
 
 		socket.on('dropped item', function (profile,itemKey) {
-			console.log(itemKey);
-			set.dropItem(itemKey, function (err, info) {
+
+			set.dropItem({item_id:itemKey['item_id'],pickup_key:itemKey['pickup_key']}, function (err, info) {
 				if(!err){
 					updateNewsFeed(profile['player_name'],'dropped ','neutral',itemKey);
 				}
 			})
 		})
 
-		socket.on('picked up item', function (userId, itemProfile) {
-			set.pickupItem(userId,itemProfile);
+		socket.on('picked up item', function (itemName,profile, itemProfile) {
+
+			set.pickupItem(profile['player_id'],itemProfile, function (err, itemName) {
+				if(!err){
+					console.log(profile['player_name'],'picked up '+ itemName+'!');
+					updateNewsFeed(profile['player_name'],'picked up '+ itemName+'!','neutral');
+				}
+			});
 		})
 
 		socket.on('disconnect', function () {
@@ -202,14 +208,9 @@ module.exports = function(io) {
 			var text = '';
 			var html ='<div id=item class='+type+' style="display:none">';
 			if(itemKey){
-				get.item(itemKey,function (err,item) {
-					if(!err){
-						html+= '<p>'+playerName + ' ' + action+' <a href=# onclick="pickupItem('+item['trx_id'] +')" >'+item['item_name']+'</a></p></div>';
-						socket.broadcast.emit('feed updated',html);
-					} else {
-						console.log('***** updateNewsFeed.get.item failed:', err.message);
-					}
-				})
+				html+= '<p>'+playerName + ' ' + action+' <a href=# onclick="pickupItem(\''+itemKey['item_name']+'\','+ itemKey['item_id'] +',\''+itemKey['pickup_key'] +'\')" >'+itemKey['item_name']+'</a></p></div>';
+				console.log(html);
+				socket.broadcast.emit('feed updated',html);
 				
 			} else {
 				html += '<p>'+playerName + ' ' + action+'</p></div>';

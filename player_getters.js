@@ -96,12 +96,12 @@
 		    });
 	}
 
-	exports.item = function (itemKey, callback) {
-		var where = {
-			item_id: itemKey['item_id']
-		};
-		mysql.record('items',where)
+	exports.itemInstance = function (itemKey, callback) {
+		var sql = 'select item_name, pickup_key from items inner join player_items on \
+		items.item_id=player_items.item_id where pickup_key= ?';
+		mysql.query(sql,[itemKey['pickup_key']])
 		    .then(function(item){
+		    	console.log(item);
 		        callback(null,item);
 		    })
 		    .catch(function(err){

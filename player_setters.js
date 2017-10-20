@@ -130,20 +130,21 @@ exports.dropItem = function (itemKey, callback) {
 	});	
 }
 
-exports.pickupItem = function function_name(playerId,itemProfile) {
+exports.pickupItem = function (playerId,itemProfile, callback) {
 	
-	var pickupKey = crypto.randomBytes(20).toString('hex');
+	var newPickupKey = crypto.randomBytes(20).toString('hex');
 	var upd = {
 		player_id:playerId,
 		reliquished_at: null,
-		pickup_key: pickupKey
+		pickup_key: newPickupKey
 	};
+	console.log(upd);
 	mysql.update('player_items', itemProfile, upd)
 	.then(function(info){
-		callback(null, info);
+		callback(null, itemProfile['item_name']);
 	})
 	.catch(function(err){
-		console.log('***** set.dropItem.update Failed:', err.message);
+		console.log('***** set.pickupItem.update Failed:', err.message);
 		callback(err,null);
 	});	
 }

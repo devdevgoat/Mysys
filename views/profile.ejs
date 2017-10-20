@@ -89,9 +89,9 @@
 				html = '<li class=equipment'+val['item_id']+'>\
 							<img src="/src/img/item_imgs/unknown.svg"><span class=name>'+ val['item_name'] +'</span><span class=mod>'+ val['mod_value'] + val['mod_type'] +'</span><p>'+ val['item_desc'] +'</p>\
 								<div id=actionMenu>\
-									<input type="button" name="btn_use" value="Use" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] + ', \'use\')">\
-									<input type="button" name="btn_give" value="Give" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] +', \'give\')">\
-									<input type="button" name="btn_drop" value="Drop" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] + ',' +val['pickup_key'] +', \'drop\')">\
+									<input type="button" name="btn_use" value="Use" onclick="itemAction(\''+ val['item_name'] + '\',' +val['item_id'] + ', \'use\')">\
+									<input type="button" name="btn_give" value="Give" onclick="itemAction(\''+ val['item_name'] + '\',' +val['item_id'] +', \'give\')">\
+									<input type="button" name="btn_drop" value="Drop" onclick="itemAction(\''+ val['item_name'] +'\',' +val['item_id'] + ',\'' +val['pickup_key'] +'\', \'drop\')">\
 								</div>\
 								<div id=targetsMenu-'+ val['item_id'] +' style="display:none;">\
 								<select  data-limit="'+ val['number_of_targets'] + '" multiple="multiple">';
@@ -133,10 +133,9 @@
 	  		}
 		}
 
-		function itemAction(trxId,playerId,itemId,pickupKey,action) {
+		function itemAction(itemName,itemId,pickupKey,action) {
 			var itemKey = {
-				trx_id:trxId,
-				player_id:playerId,
+				item_name:itemName,
 				item_id:itemId,
 				pickup_key:pickupKey
 			};
@@ -180,13 +179,13 @@
 	          	}
 	    }
 
-	    function pickupItem(trxId,itemId,pickupKey) {
+	    function pickupItem(item_name,itemId,pickupKey) {
+
 	    	var itemProfile = {
-	    		trx_id:trxId,
-	    		item_id:itemId
-	    		pickup_key:pickupKey
-	    	};
-	    	socket.emit('picked up item', profile['user_id'],itemProfile);
+				item_id:itemId,
+				pickup_key:pickupKey
+			}
+	    	socket.emit('picked up item', item_name, profile,itemProfile);
 	    }
 
 	    $(document).ready(function(){
@@ -208,8 +207,8 @@
 	          //listen for party members
 	          //
 	          socket.on('player joined the party', function (player) {
+	          	var compId = '#player'+player['player_id'];
 	          	if(!$(compId).length){ //only add new players
-	          		var compId = '#player'+player['player_id'];
 	          		$('#party').append(buildCompanionHtml(player));
 	          		addPlayerToItems(player);
 	          		currentPlayers[player['player_id']] = [player['player_name'],player['img']] ;
