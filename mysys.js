@@ -152,6 +152,10 @@ module.exports = function(io) {
 			})
 		})
 
+		socket.on('picked up item', function (userId, itemProfile) {
+			set.pickupItem(userId,itemProfile);
+		})
+
 		socket.on('disconnect', function () {
 			console.log('User disconnect:',socket.id );
 				var h = socket.request.headers.referer;

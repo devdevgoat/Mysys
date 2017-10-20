@@ -1,11 +1,4 @@
 <!-- views/profile.ejs -->
-<!--
-	<%= user.id %>  
-	<%= user.username %> 
-	<%= user.password %>
-	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
-	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
--->
 
 <html>
 	<link rel="stylesheet" type="text/css" href="/src/css/player.css">
@@ -98,7 +91,7 @@
 								<div id=actionMenu>\
 									<input type="button" name="btn_use" value="Use" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] + ', \'use\')">\
 									<input type="button" name="btn_give" value="Give" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] +', \'give\')">\
-									<input type="button" name="btn_drop" value="Drop" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] + ', \'drop\')">\
+									<input type="button" name="btn_drop" value="Drop" onclick="itemAction('+ val['trx_id'] + ',' + val['player_id']+ ',' +val['item_id'] + ',' +val['pickup_key'] +', \'drop\')">\
 								</div>\
 								<div id=targetsMenu-'+ val['item_id'] +' style="display:none;">\
 								<select  data-limit="'+ val['number_of_targets'] + '" multiple="multiple">';
@@ -140,11 +133,12 @@
 	  		}
 		}
 
-		function itemAction(trxId,playerId,itemId,action) {
+		function itemAction(trxId,playerId,itemId,pickupKey,action) {
 			var itemKey = {
 				trx_id:trxId,
 				player_id:playerId,
-				item_id:itemId
+				item_id:itemId,
+				pickup_key:pickupKey
 			};
 	          	switch(action){
 	          		case 'use':
@@ -184,6 +178,15 @@
 	          		$("#targetsMenu-"+item).toggle(); 
 
 	          	}
+	    }
+
+	    function pickupItem(trxId,itemId,pickupKey) {
+	    	var itemProfile = {
+	    		trx_id:trxId,
+	    		item_id:itemId
+	    		pickup_key:pickupKey
+	    	};
+	    	socket.emit('picked up item', profile['user_id'],itemProfile);
 	    }
 
 	    $(document).ready(function(){
@@ -232,6 +235,8 @@
 	          socket.on('player updated', function (stats) {
 	          	updatePlayer(stats);
 	          });
+
+
 	          
 	    });
     </script>
@@ -274,22 +279,7 @@
 	</div>
 	<div id=backpack>
 		<ul class='equipment'>
-			<li class=equipment>
-			<img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p>
-				<div id=actionMenu>
-					<input id="1" type="button" name="btn_use" value="Use" onclick="itemAction(this.id,'use')">
-					<input id="2" type="button" name="btn_give" value="Give" onclick="itemAction(this.id,'give')">
-					<input id="3" type="button" name="btn_drop" value="Drop" onclick="itemAction(this.id, 'drop')">
-				</div>
-				<div id=targetsMenu>
-				<select  data-limit="2" multiple="multiple">
-				</select>
-				<img src="/src/img/item_imgs/cancel.svg">
-				<img src="/src/img/item_imgs/thumb-up.svg">
-				</div>
-			</li>
-			<!--<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>
-			<li><img src="/src/img/item_imgs/unknown.svg"><span class=name>sword</span><span class=mod>+3p</span><p></p></li>-->
+			
 			
 		</ul>
 		<ul class='items'>

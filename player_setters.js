@@ -9,7 +9,7 @@ var mysqlOptions    =    {
 	debug             :   false
 };
 mysql.connect(mysqlOptions);
-
+var crypto = require("crypto");
 
 exports.addLE = function (data, callback) {
 	var sql = 'UPDATE players set LE = LE + ? where player_id = ?';
@@ -130,4 +130,21 @@ exports.dropItem = function (itemKey, callback) {
 	});	
 }
 
+exports.pickupItem = function function_name(playerId,itemProfile) {
+	
+	var pickupKey = crypto.randomBytes(20).toString('hex');
+	var upd = {
+		player_id:playerId,
+		reliquished_at: null,
+		pickup_key: pickupKey
+	};
+	mysql.update('player_items', itemProfile, upd)
+	.then(function(info){
+		callback(null, info);
+	})
+	.catch(function(err){
+		console.log('***** set.dropItem.update Failed:', err.message);
+		callback(err,null);
+	});	
+}
 console.log('loaded player_setters');

@@ -112,7 +112,7 @@
 	
 	exports.myItems = function (playerId, callback) {
 		var sql = 'SELECT \
-					    pi.trx_id,pi.player_id,pi.item_id,\
+					    pi.trx_id,pi.player_id,pi.item_id,pi.pickup_key,\
 					    i.item_name,i.item_desc,i.mod_type,i.mod_value,i.img,i.duration-pi.times_used as uses_remaining,\
 					    i.item_type,i.consume_word,i.min_level,i.number_of_targets,count(trx_id)\
 					FROM mysys.player_items pi inner join mysys.items i\

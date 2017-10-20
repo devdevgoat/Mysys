@@ -53,39 +53,57 @@ CREATE TABLE  `mysys`.`players` (\
 ');
 console.log('Success: Created players!');
 //durattion below is number of uses a item has
+
+
 connection.query('\
-CREATE TABLE `mysys`.`items` (\
+CREATE TABLE `mysys`.`player_items` (\
+  `trx_id` int(11) NOT NULL AUTO_INCREMENT,\
+  `player_id` int(11) unsigned NOT NULL,\
+  `item_id` int(11) NOT NULL,\
+  `received_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\
+  `reason` varchar(250) NOT NULL DEFAULT \'Unknown\',\
+  `reliquished_at` timestamp NULL DEFAULT NULL,\
+  `status` varchar(50) NOT NULL DEFAULT \'Normal\',\
+  `times_used` INT NOT NULL DEFAULT \'0\', \
+  `pickup_key` varchar(50) NOT NULL ,\
+  PRIMARY KEY (`trx_id`,`player_id`, `item_id` )\
+) \
+');
+
+
+console.log('Success: Created player_items!');
+/* WHY IS THIS BROKEN
+connection.query('CREATE TABLE `mysys`.`items` ( \
   `item_id` int(11) unsigned NOT NULL AUTO_INCREMENT,\
   `item_name` varchar(250) CHARACTER SET utf8 NOT NULL DEFAULT \'no name provided\',\
   `item_desc` varchar(500) NOT NULL DEFAULT \'missing description\',\
   `mod_type` varchar(2) NOT NULL DEFAULT \'PE\',\
   `mod_value` int(11) NOT NULL DEFAULT \'0\',\
   `img` varchar(250) NOT NULL DEFAULT \'unknown.png\',\
-  `duration` int(11) NOT NULL DEFAULT \'9999\',\ 
+  `duration` int(11) NOT NULL DEFAULT \'9999\', \
   `item_type` varchar(50) NOT NULL DEFAULT \'ITEM\',\
   `consume_word` varchar(45) NOT NULL DEFAULT \'used\',\
-  `min_level` int(11) NOT NULL DEFAULT \'1\',\  
+  `min_level` int(11) NOT NULL DEFAULT \'1\',  \
   `number_of_targets` int(11) NOT NULL DEFAULT \'1\',\
-  PRIMARY KEY (`item_id`)\
-) \
-');
+  PRIMARY KEY (`item_id`)\ 
+)');
 console.log('Success: Created items!');
 
-connection.query('\
-CREATE TABLE `mysys`.`player_items` (\
-  `trx_id` int(11) NOT NULL AUTO_INCREMENT,\
-  `player_id` int(11) unsigned NOT NULL AUTO_INCREMENT,\
-  `item_id` int(11) DEFAULT NULL,\
-  `received_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\
-  `reason` varchar(250) NOT NULL DEFAULT \'Unknown\',\
-  `reliquished_at` timestamp NULL DEFAULT NULL,\
-  `status` varchar(50) NOT NULL DEFAULT \'Normal\',\
-  `times_used` INT NOT NULL DEFAULT \'0\', \
-  PRIMARY KEY (`player_id`, `item_id` )\
-) \
-');
-console.log('Success: Created player_items!');
-
+CREATE TABLE `mysys`.`items` (
+  `item_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `item_name` varchar(250) CHARACTER SET utf8 NOT NULL DEFAULT 'no name provided',
+  `item_desc` varchar(500) NOT NULL DEFAULT 'missing description',
+  `mod_type` varchar(2) NOT NULL DEFAULT 'PE',
+  `mod_value` int(11) NOT NULL DEFAULT '0',
+  `img` varchar(250) NOT NULL DEFAULT 'unknown.png',
+  `duration` int(11) NOT NULL DEFAULT '9999', 
+  `item_type` varchar(50) NOT NULL DEFAULT 'ITEM',
+  `consume_word` varchar(45) NOT NULL DEFAULT 'used',
+  `min_level` int(11) NOT NULL DEFAULT '1',  
+  `number_of_targets` int(11) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`item_id`)
+)
+*/
 console.log('Success: Database Created!');
 
 connection.end();
