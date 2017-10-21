@@ -92,16 +92,18 @@
 								<div id=actionMenu>\
 									<input type="button" name="btn_use" value="Use" onclick="itemAction(\''+ val['item_name'] + '\',' +val['item_id'] + ', \'use\')">\
 									<input type="button" name="btn_give" value="Give" onclick="itemAction(\''+ val['item_name'] + '\',' +val['item_id'] +', \'give\')">\
-									<input type="button" name="btn_drop" value="Drop" onclick="itemAction(\''+ val['item_name'] +'\',' +val['item_id'] + ',\'' +val['pickup_key'] +'\', \'drop\')">\
+									<input type="button" name="btn_drop" value="Drop" onclick="itemAction(\''+ val['item_name'] +'\',' +val['item_id'] + ',\'drop\',\'' +val['pickup_key'] +'\')">\
 								</div>\
 								<div id=targetsMenu-'+ val['item_id'] +' style="display:none;">\
 								<select  data-limit="'+ val['number_of_targets'] + '" multiple="multiple">';
 				html += optHtml; //new items will result in optHtml, but items at load will not. Will generate optHtml as players join
 				html += '		</select>\
-								<img src="/src/img/item_imgs/cancel.svg">\
-								<img src="/src/img/item_imgs/thumb-up.svg">\
+								<img src="/src/img/item_imgs/thumb-up.svg" onclick="useItem('+ val['item_id']+')">\
+								<img src="/src/img/item_imgs/cancel.svg" onclick="$(\'#targetsMenu-'+ val['item_id'] + '\').toggle();">\
 								</div>\
 							</li>';
+				//refresh picker
+				$("select").imagepicker();
 				//append to backpack
 				$('ul.equipment').append(html);
 				});
@@ -112,7 +114,7 @@
 			html = '<option data-img-src="/src/img/player_imgs/'+ player['img'] +
 					'" value="'+ player['player_id'] + '">'+player['player_name']+'</option>';
 				$('select').append(html);
-			$("select").imagepicker()
+			$("select").imagepicker();
 		}
 
 		function getPlayers(which) {
@@ -134,7 +136,14 @@
 	  		}
 		}
 
-		function itemAction(itemName,itemId,pickupKey,action) {
+		function useItem(itemId) {
+			var selectedPlayers = $('#targetsMenu-'+ itemId +' select').val();
+			 $.each(selectedPlayers, function (key, val) {
+			        	socket.emit('use item',itemId,val);
+			        });
+		}
+
+		function itemAction(itemName,itemId,action,pickupKey) {
 			var itemKey = {
 				item_name:itemName,
 				item_id:itemId,
@@ -185,7 +194,7 @@
 	    	var itemProfile = {
 				item_id:itemId,
 				pickup_key:pickupKey
-			}
+			};
 	    	socket.emit('picked up item', item_name, profile,itemProfile);
 	    }
 
@@ -197,8 +206,11 @@
         	   		//get players after items
         	   		//get other players
 	         		 socket.emit('whos playing',{user_id:profile['user_id'],player_id:profile['player_id']});
-        	   })
-	          
+        	   });
+
+        	   socket.on('heres your item', function (item) {
+	        	   	buildItemHtml([item]);
+	          });
 	          //listen for stats
 	          socket.on('heres your stats', function (data) {
 	          		console.log(JSON.stringify(data));

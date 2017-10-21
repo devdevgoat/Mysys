@@ -141,18 +141,44 @@ exports.pickupItem = function (playerId,itemProfile, callback) {
 	console.log(upd);
 	mysql.update('player_items', itemProfile, upd)
 	.then(function(info){
-		if(info.affectedRows =1){
-			console.log('updated: ',itemProfile['item_name'],'successfully');
+		console.log('updated: ',itemProfile['item_name'],'successfully');
 			callback(null, 'gotit');
-		} else {
-			console.log('Cant pickup item: ',itemProfile['item_name']);
-			callback(null, 'lostit');
-		}
-		
+		//rows affected didn't work, but need to check that above
 	})
 	.catch(function(err){
 		console.log('***** set.pickupItem.update Failed:', err.message);
 		callback(err,null);
 	});	
 }
+
+exports.useItem = function(modType,modValue,targetPlayerId,callback){
+	//first check the item type: weapon or consumable
+	//weapons need an option to put force behind them: force (prompt) + mod_value
+	//this will require a different set of html builds for equipment vs items, 
+	//maybe even a 'useWeapon' function
+
+	//items will simply apply the mod_val to the mod_type of the selected players
+	//first, get 
+	var sql = 'UPDATE players set '+modType+' = '+modType+' + '+modValue+' where player_id = '+targetPlayerId;
+	mysql.query(sql)
+	.then(function(info){ //need to check rows affected...
+		console.log('updated players: ',modType,modValue,targetPlayerId,'successfully');
+		callback(null, 'gotit');	
+	})
+	.catch(function(err){
+		console.log('***** set.useItem.query Failed:', err.message);
+		callback(err,null);
+	});	
+}
+
+
+
+
+
+
+
+
+
+
+
 console.log('loaded player_setters');

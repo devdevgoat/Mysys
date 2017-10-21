@@ -159,7 +159,7 @@ module.exports = function(io) {
 						console.log(profile['player_name'],'picked up '+ item['item_name']+'!');
 						io.emit('clean item',itemProfile['pickup_key']);
 						updateNewsFeed(profile['player_name'],'picked up '+ item['item_name']+'!','neutral');
-						sendItems(item,0);
+						sendOnlyOneItem(item,0);
 					});
 				}
 			});
@@ -170,6 +170,31 @@ module.exports = function(io) {
 				sendItems(item,session);
 			});
 		})
+
+		socket.on('use item', function (itemId,targetPlayerId) {
+			//first lookup the item
+			get.lookupItem(itemId, function (err, item) {
+				if(!err){
+					set.useItem(item['mod_type'],item['mod_value'],targetPlayerId, function (err) {
+						if(!err){
+							get.stats(targetPlayerId, function (err, stats) {
+							if(!err){
+								sendStats(stats,0,false);
+								updateNewsFeed(stats['player_name'],'joined the party!','neutral');
+							} else {
+								console.log('**** socket.on.use-item.get.stats failed: ',err.message);
+							}
+						});
+						} else {
+							console.log('**** socket.on.use-item.useItem failed:',err.message);
+						}
+						
+					});
+				} else {
+					console.log('**** socket.on.use-item.lookupItem failed:',err.message);
+				}
+			});
+		});
 
 		socket.on('disconnect', function () {
 			console.log('User disconnect:',socket.id );
@@ -199,7 +224,7 @@ module.exports = function(io) {
 				socket.broadcast.emit('player joined the party',stats);
 			} else {
 				//update the companion divs
-				socket.broadcast.emit('player updated',stats);
+				socket.emit('player updated',stats);
 			}
 		}
 
@@ -210,6 +235,16 @@ module.exports = function(io) {
 				console.log('sending to session ',session, ' these items:', items);
 				socket.broadcast.to(session).emit('heres your items',items);
 				socket.emit('heres your items',items); //this sends back to the sender gm the new items
+			}
+		}
+
+		function sendOnlyOneItem(item,session) {
+			if(session==0){
+				socket.emit('heres your item',item);
+			} else {
+				console.log('sending to session ',session, ' this item:', item);
+				socket.broadcast.to(session).emit('heres your item',item);
+				socket.emit('heres your item',item); //this sends back to the sender gm the new items
 			}
 		}
 
