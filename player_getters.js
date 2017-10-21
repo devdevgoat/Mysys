@@ -122,8 +122,8 @@
 						and i.duration > pi.times_used\
 						 and pi.reliquished_at is null\
 					group by\
-					pi.player_id,pi.item_id,\
-					i.item_name,i.item_desc,i.mod_type,i.img,i.duration-pi.times_used,\
+					pi.trx_id,pi.player_id,pi.item_id,pi.pickup_key,\
+					i.item_name,i.item_desc,i.mod_type,i.mod_value,i.img,i.duration-pi.times_used,\
 					i.item_type,i.consume_word,i.min_level,i.number_of_targets';
 		var ins = [playerId];
 		mysql.query(sql, ins)
@@ -136,6 +136,17 @@
 		        console.log('***** getters.myItems.query Failed:', err.message);
 		        callback(err,null);
 	    });	
+	}
+
+	exports.lookupItem = function(itemId, callback){
+		mysql.record('items',{item_id:itemId})
+		    .then(function(item){
+		        callback(null,item);
+		    })
+		    .catch(function(err){
+		        console.log('***** getters.item.record Failed:', err.message);
+		        callback(err,null);
+		    });
 	}
 
 	console.log('loaded player_getters');

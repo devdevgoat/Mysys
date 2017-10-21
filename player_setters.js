@@ -141,7 +141,14 @@ exports.pickupItem = function (playerId,itemProfile, callback) {
 	console.log(upd);
 	mysql.update('player_items', itemProfile, upd)
 	.then(function(info){
-		callback(null, itemProfile['item_name']);
+		if(info.affectedRows =1){
+			console.log('updated: ',itemProfile['item_name'],'successfully');
+			callback(null, 'gotit');
+		} else {
+			console.log('Cant pickup item: ',itemProfile['item_name']);
+			callback(null, 'lostit');
+		}
+		
 	})
 	.catch(function(err){
 		console.log('***** set.pickupItem.update Failed:', err.message);

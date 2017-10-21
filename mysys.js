@@ -153,12 +153,21 @@ module.exports = function(io) {
 		})
 
 		socket.on('picked up item', function (itemName,profile, itemProfile) {
-
-			set.pickupItem(profile['player_id'],itemProfile, function (err, itemName) {
+			set.pickupItem(profile['player_id'],itemProfile, function (err) {
 				if(!err){
-					console.log(profile['player_name'],'picked up '+ itemName+'!');
-					updateNewsFeed(profile['player_name'],'picked up '+ itemName+'!','neutral');
+					get.lookupItem(itemProfile['item_id'], function (err,item) {
+						console.log(profile['player_name'],'picked up '+ item['item_name']+'!');
+						io.emit('clean item',itemProfile['pickup_key']);
+						updateNewsFeed(profile['player_name'],'picked up '+ item['item_name']+'!','neutral');
+						sendItems(item,0);
+					});
 				}
+			});
+		})
+
+		socket.on('give item', function (item,playerId) {
+			set.giveItem(item,playerId, function (err) {
+				sendItems(item,session);
 			});
 		})
 
@@ -208,13 +217,13 @@ module.exports = function(io) {
 			var text = '';
 			var html ='<div id=item class='+type+' style="display:none">';
 			if(itemKey){
-				html+= '<p>'+playerName + ' ' + action+' <a href=# onclick="pickupItem(\''+itemKey['item_name']+'\','+ itemKey['item_id'] +',\''+itemKey['pickup_key'] +'\')" >'+itemKey['item_name']+'</a></p></div>';
+				html+= '<p>'+playerName + ' ' + action+' <a id=\''+ itemKey['pickup_key']+'\' href=# onclick="pickupItem(\''+itemKey['item_name']+'\','+ itemKey['item_id'] +',\''+itemKey['pickup_key'] +'\')" >'+itemKey['item_name']+'</a></p></div>';
 				console.log(html);
-				socket.broadcast.emit('feed updated',html);
+				io.emit('feed updated',html);
 				
 			} else {
 				html += '<p>'+playerName + ' ' + action+'</p></div>';
-				socket.broadcast.emit('feed updated',html);
+				io.emit('feed updated',html);
 			}
 		}
 

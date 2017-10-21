@@ -80,6 +80,7 @@
 			//only called when adding an item
 			//itterate through players
 			//player array
+			console.log(JSON.stringify(items));
 			var optHtml = '';
 			$.each(items,function (key,val) {
 				$.each(currentPlayers, function( key, value ) {
@@ -235,7 +236,9 @@
 	          	updatePlayer(stats);
 	          });
 
-
+	          socket.on('clean item', function (pickupKey) {
+	          	$('#'+pickupKey).contents().unwrap();
+	          })
 	          
 	    });
     </script>
