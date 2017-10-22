@@ -173,7 +173,7 @@
 	          		case 'use':
 			    	console.log('using:'+JSON.stringify(itemKey));
 			        $("#targetsMenu-"+itemId).toggle(); //show the selection list
-			        $('#chooseYes').attr("onclick") = 'useItem('+ itemKey +')';
+			        $('#chooseYes').attr("onclick",'useItem('+ itemKey +')');
 			        break;
 			    case 'give':
 			    	console.log('giving:'+JSON.stringify(itemKey));
