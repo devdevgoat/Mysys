@@ -144,4 +144,16 @@
 		    });
 	}
 
+	exports.allItems = function (callback) {
+		let sql = 'select * from items';
+		mysql.query(sql)
+		    .then(function(items){
+		        callback(null,items);
+		    })
+		    .catch(function(err){
+		        console.log('***** getters.allItems.query Failed:', err.message);
+		        callback(err,null);
+		    });
+	}
+
 	console.log('loaded player_getters');

@@ -141,6 +141,16 @@ module.exports = function(io) {
 				);
 		});
 
+		socket.on('list items', function () {
+			get.allItems(function (err,items) {
+				if(!err){
+					console.log(items);
+					socket.emit('heres the item list',items);
+				} else { console.log('***** socket.on.list-items failed:', err.message); }
+				
+			})
+		});
+
 		socket.on('dropped item', function (profile,itemKey) {
 
 			set.dropItem({item_id:itemKey['item_id'],pickup_key:itemKey['pickup_key']}, function (err, info) {
@@ -148,7 +158,7 @@ module.exports = function(io) {
 					updateNewsFeed(profile['player_name'],'dropped ','neutral',itemKey);
 				}
 			})
-		})
+		});
 
 		socket.on('picked up item', function (itemName,profile, itemProfile) {
 			set.pickupItem(profile['player_id'],itemProfile, function (err) {
@@ -161,7 +171,7 @@ module.exports = function(io) {
 					});
 				}  else { console.log('***** socket.on.pickupItem failed:', err.message); }
 			});
-		})
+		});
 
 		socket.on('give item', function (targetPlayerId,itemKey) {
 			let targetProfile = {player_id : parseInt(targetPlayerId, 10), in_play: 1};
@@ -179,7 +189,18 @@ module.exports = function(io) {
 					});
 				} else { console.log('***** socket.on.give-item.get.session failed:', err.message); }
 			});
-		})
+		});
+
+		socket.on('gm gives an item',function (data) {
+			set.NewPlayerItem(data, function (err,itemId) {
+				get.lookupItem(itemId, function (err, item) { //get details to send
+					if(!err){
+						sendOnlyOneItem(item,data['session']);
+					} else { console.log('***** socket.on.give-item.get.lookupItem failed:', err.message);}
+				})
+				updateNewsFeed(data['player_name'],'aquired ' + item['item_name']+'!','good');
+			});
+		});
 
 		socket.on('use item', function (itemId,targetPlayerId) {
 			//first lookup the item
@@ -292,6 +313,25 @@ module.exports = function(io) {
 				html += '<p>'+playerName + ' ' + action+'</p></div>';
 				io.emit('feed updated',html);
 			}
+		}
+
+		function reply(type,handle,payload,session,callback) {
+			switch(type){
+				case 'all':
+					io.emit(handle,payload);
+					break;
+				case 'sender':
+					socket.emit(handle,payload);
+					break;
+				case 'others':
+					socket.broadcast.emit(handle,payload);
+					break;
+				case 'toSession':
+					socket.broadcast.to(session).emit(handle,payload);
+					break;
+				default:
+			}
+			callback(null,sent);
 		}
 
 	});

@@ -77,7 +77,7 @@ connection.query('CREATE TABLE `mysys`.`items` ( \
   `item_id` int(11) unsigned NOT NULL AUTO_INCREMENT,\
   `item_name` varchar(250) CHARACTER SET utf8 NOT NULL DEFAULT \'no name provided\',\
   `item_desc` varchar(500) NOT NULL DEFAULT \'missing description\',\
-  `mod_type` varchar(2) NOT NULL DEFAULT \'PE\',\
+  `mod_type` varchar(4) NOT NULL DEFAULT \'PE\',\
   `mod_value` int(11) NOT NULL DEFAULT \'0\',\
   `img` varchar(250) NOT NULL DEFAULT \'unknown.png\',\
   `duration` int(11) NOT NULL DEFAULT \'9999\', \

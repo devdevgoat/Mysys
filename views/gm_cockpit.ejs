@@ -82,6 +82,7 @@
       // body...
       g_playerToEdit = {
             player_id : playerId,
+            player_name: player_name,
             session : session
           };
       //update the modal
@@ -121,6 +122,20 @@
         }
     }
 
+    function buildItemHtml(items) {
+      var optHtml = ''
+     $.each(items,function (key,val) {
+          optHtml += '<option value="'+ val['item_id'] + '">'+
+            val['item_name']+ ' '+
+            val['item_type']+' '+
+            val['mod_type']+' '+
+            val['mod_value']+ ' ' +
+          '</option>';
+          console.log(optHtml);
+        });
+     $('select').append(optHtml);
+    }
+
     $(document).ready(function(){
 
     socket.on('heres your players', function (data) {
@@ -145,6 +160,10 @@
           createTable(data['player_id'],pData);
       });
     
+      socket.on('heres the item list', function (items) {
+        buildItemHtml(items);
+      });
+
       $("#updateHealth").click(function(){
         var update = {
           'player_id' : g_playerToEdit['player_id'],
@@ -165,6 +184,17 @@
         socket.emit('energies affected',update);
       });
 
+       $("#giveItem").click(function(){
+        var update = {
+          'player_id' : g_playerToEdit['player_id'],
+          'player_name': g_playerToEdit['player_name'],
+          'item_id' : $('select').val(),
+          'session' : g_playerToEdit['session']
+        };
+        socket.emit('gm gives an item',update);
+      });
+
+      socket.emit('list items');
 
     });
     </script>
@@ -179,6 +209,8 @@
       <div id=activeName><h1></h1></div>
       <div id=giveItem>
           <!--Need some sort of drop down/search, populated at load?-->
+          <select>
+          </select>
            <input type="button" name="giveitem" id="giveitem" value="Give Item">
       </div>
       <div id=affectHealth>

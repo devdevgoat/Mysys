@@ -189,7 +189,25 @@ exports.giveItem = function (itemKey, playerId, callback) {
 	});	
 }
 
-
+exports.NewPlayerItem = function (data,callback) {
+	let newPickupKey = crypto.randomBytes(20).toString('hex');
+	let ins = {
+		player_id: data['player_id'],
+		item_id: data['item_id'],
+		reliquished_at: null,
+		pickup_key: newPickupKey
+	};
+	mysql.insert('player_items', ins)
+	.then(function(info){
+		console.log('gave player ',data['player_id'], ' item ', data['item_id'],' successfully');
+			callback(null, data['item_id']);
+		//rows affected didn't work, but need to check that above
+	})
+	.catch(function(err){
+		console.log('***** set.NewPlayerItem.insert Failed:', err.message);
+		callback(err,null);
+	});	
+}
 
 
 
