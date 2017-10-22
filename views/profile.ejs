@@ -8,7 +8,7 @@
     <script src="/src/js/image-picker.min.js"></script>
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
  	<script>
- 		var profile = {
+ 		const profile = {
           	user_id : <%= user.id %>,
           	player_name : '<%= playerName %>',
           	player_id : <%= playerId %>
@@ -83,27 +83,26 @@
 			console.log(JSON.stringify(items));
 			var optHtml = '';
 			$.each(items,function (key,val) {
-				$.each(currentPlayers, function( key, value ) {
-				  optHtml += '<option data-img-src="/src/img/player_imgs/'+value[0]+'" value="'+ key + '">'+ value[1] +'</option>';
+				$.each(currentPlayers, function( key, value ) { //key = player id, 0 = name, 1 = image
+				  optHtml += '<option data-img-src="/src/img/player_imgs/'+value[1]+'" value="'+ key + '">'+ value[0] +'</option>';
 				});
-					//build this for each item 
-				html = '<li class=equipment'+val['item_id']+'>\
+					//build this for each item... need a itemid+trxid: + '-' + val['trx_id'], but then need to pass trx throughout
+				html = '<li class=equipment'+val['item_id']+ '>\
 							<img src="/src/img/item_imgs/unknown.svg"><span class=name>'+ val['item_name'] +'</span><span class=mod>'+ val['mod_value'] + val['mod_type'] +'</span><p>'+ val['item_desc'] +'</p>\
 								<div id=actionMenu>\
 									<input type="button" name="btn_use" value="Use" onclick="itemAction(\''+ val['item_name'] + '\',' +val['item_id'] + ', \'use\')">\
-									<input type="button" name="btn_give" value="Give" onclick="itemAction(\''+ val['item_name'] + '\',' +val['item_id'] +', \'give\')">\
+									<input type="button" name="btn_give" value="Give" onclick="itemAction(\''+ val['item_name'] + '\',' +val['item_id'] +', \'give\',\'' +val['pickup_key'] +'\')">\
 									<input type="button" name="btn_drop" value="Drop" onclick="itemAction(\''+ val['item_name'] +'\',' +val['item_id'] + ',\'drop\',\'' +val['pickup_key'] +'\')">\
 								</div>\
 								<div id=targetsMenu-'+ val['item_id'] +' style="display:none;">\
-								<select  data-limit="'+ val['number_of_targets'] + '" multiple="multiple">';
+								<select id=selection-'+val['item_id']+'  data-limit="'+ val['number_of_targets'] + '" multiple="multiple">\
+								<option data-img-src="'+$('#avatar').attr("src")+'" value="'+ key + '">'+ profile['player_id'] +'</option>';
 				html += optHtml; //new items will result in optHtml, but items at load will not. Will generate optHtml as players join
 				html += '		</select>\
-								<img src="/src/img/item_imgs/thumb-up.svg" onclick="useItem('+ val['item_id']+')">\
-								<img src="/src/img/item_imgs/cancel.svg" onclick="$(\'#targetsMenu-'+ val['item_id'] + '\').toggle();">\
+								<img id="chooseYes" src="/src/img/item_imgs/thumb-up.svg" onclick="useItem('+ val['item_id']+')">\
+								<img id="chooseNo" src="/src/img/item_imgs/cancel.svg" onclick="$(\'#targetsMenu-'+ val['item_id'] + '\').toggle();">\
 								</div>\
 							</li>';
-				//refresh picker
-				$("select").imagepicker();
 				//append to backpack
 				$('ul.equipment').append(html);
 				});
@@ -111,10 +110,14 @@
 
 
 		function addPlayerToItems(player) {
-			html = '<option data-img-src="/src/img/player_imgs/'+ player['img'] +
+			if($("select option[value='"+ player['player_id'] +"']").length > 0){
+				
+			} else {
+				html = '<option id=iPlayer'+ player['player_id']+' data-img-src="/src/img/player_imgs/'+ player['img'] +
 					'" value="'+ player['player_id'] + '">'+player['player_name']+'</option>';
 				$('select').append(html);
-			$("select").imagepicker();
+				$("select").imagepicker();
+			}
 		}
 
 		function getPlayers(which) {
@@ -143,6 +146,25 @@
 			        });
 		}
 
+		function giveItem(itemName,itemId,pickupKey) {
+			let itemKey = {
+				item_name:itemName,
+				item_id:parseInt(itemId),
+				pickup_key:pickupKey
+			};
+			console.log(itemKey['pickup_key']);
+			let selectedPlayers = $('#targetsMenu-'+ itemId +' select').val();
+			if(selectedPlayers.length = 1){
+			     socket.emit('give item', selectedPlayers, itemKey);
+			     $('.equipment'+itemId).remove();//will techincally remove all items of this id... 
+			} else {
+				alert('Can only give 1 item to '+selectedPlayers.length+' players');
+			}
+		}
+
+
+			        
+
 		function itemAction(itemName,itemId,action,pickupKey) {
 			var itemKey = {
 				item_name:itemName,
@@ -153,10 +175,12 @@
 	          		case 'use':
 			    	console.log('using:'+JSON.stringify(itemKey));
 			        $("#targetsMenu-"+itemId).toggle(); //show the selection list
+			        $('#chooseYes').attr("onclick") = 'useItem('+ itemKey +')';
 			        break;
 			    case 'give':
 			    	console.log('giving:'+JSON.stringify(itemKey));
 			        $("#targetsMenu-"+itemId).toggle(); //show the selection list
+			        $('#chooseYes').attr("onclick",'giveItem(\''+ itemName+'\','+itemId+',\''+pickupKey +'\')');
 			        break;
 			    case 'drop':
 			    	//drop
@@ -166,7 +190,6 @@
 			        break;
 			    default:
 			        console.log('cant do ' + action);
-
 	          	}
 	          }
 
@@ -203,13 +226,13 @@
         	   thisPlayer.id = 'player'+profile['player_id'];
         	   socket.on('heres your items', function (items) {
 	        	   	buildItemHtml(items);
-        	   		//get players after items
-        	   		//get other players
+	        	   	$('select').imagepicker();
 	         		 socket.emit('whos playing',{user_id:profile['user_id'],player_id:profile['player_id']});
         	   });
 
         	   socket.on('heres your item', function (item) {
 	        	   	buildItemHtml([item]);
+	        	   	$('select').imagepicker();
 	          });
 	          //listen for stats
 	          socket.on('heres your stats', function (data) {
@@ -234,6 +257,8 @@
 	          	var compId = '#player'+player_id;
 	          		$(compId).slideUp("slow");
 	          		$(compId).remove();
+	          		$("select option[value='"+ player_id +"']").remove();
+	          		$("select").imagepicker();
 	          		delete currentPlayers[compId];
 	          });
 

@@ -28,7 +28,6 @@ module.exports = function(io) {
 			get.myItems(profile['player_id'], function (err, myItems) {
 				if(!err){
 					sendItems(myItems,0);
-					console.log('Sending items:',myItems);
 				} else {
 					console.log('**** socket.on.i-wanna-play.get.myItems failed: ',err.message);
 				}
@@ -61,7 +60,6 @@ module.exports = function(io) {
 		socket.on('get all players', function () {
 			get.allPlayers(function (err, players) {
 				if(!err){
-					console.log(players);
 			    	socket.emit('heres your players',players);
 				} else {
 					console.log('**** socket.on.get-all-players failed',err);
@@ -161,34 +159,72 @@ module.exports = function(io) {
 						updateNewsFeed(profile['player_name'],'picked up '+ item['item_name']+'!','neutral');
 						sendOnlyOneItem(item,0);
 					});
-				}
+				}  else { console.log('***** socket.on.pickupItem failed:', err.message); }
 			});
 		})
 
-		socket.on('give item', function (item,playerId) {
-			set.giveItem(item,playerId, function (err) {
-				sendItems(item,session);
+		socket.on('give item', function (targetPlayerId,itemKey) {
+			let targetProfile = {player_id : parseInt(targetPlayerId, 10), in_play: 1};
+			get.session(targetProfile,function (err, session) {
+				if(!err){
+					set.giveItem(itemKey,parseInt(targetPlayerId, 10), function (err) {
+						if(!err){
+							get.lookupItem(itemKey['item_id'], function (err, item) { //get details to send
+								if(!err){
+									sendOnlyOneItem(item,session);
+								} else { console.log('***** socket.on.give-item.get.lookupItem failed:', err.message);}
+							})
+							
+						} else { console.log('***** socket.on.give-item.giveItem failed:', err.message); }
+					});
+				} else { console.log('***** socket.on.give-item.get.session failed:', err.message); }
 			});
 		})
 
 		socket.on('use item', function (itemId,targetPlayerId) {
 			//first lookup the item
+			targetPlayerId = parseInt(targetPlayerId, 10);
 			get.lookupItem(itemId, function (err, item) {
+					switch(item['item_type']) {
+					    case 'WEAPON':
+					        item['mod_value'] = item['mod_value'] * -1;
+					        break;
+					    case 'ITEM':
+					        //no change
+					        break;
+					    case 'SPELL':
+					        //no change
+					        break;
+					    case 'ARMOR':
+					        //can't use armor on someone else. must give it, 
+					        //will hide on page, but incase someone get's sneaky 
+					        //in the console, this will catch it
+					        item['mod_value'] = 0;
+					        break;
+					    default:
+					        //code block
+					}
 				if(!err){
 					set.useItem(item['mod_type'],item['mod_value'],targetPlayerId, function (err) {
 						if(!err){
-							get.stats(targetPlayerId, function (err, stats) {
-							if(!err){
-								sendStats(stats,0,false);
-								updateNewsFeed(stats['player_name'],'joined the party!','neutral');
-							} else {
-								console.log('**** socket.on.use-item.get.stats failed: ',err.message);
-							}
-						});
+							var profile = {player_id : targetPlayerId, in_play: 1};
+							get.session(profile, function (err, session) {
+								if(!err){
+									get.stats(targetPlayerId, function (err, stats) {
+										if(!err){
+											sendStats(stats,session,false);
+											var useText = ' '+item['consume_word']+' '+item['item_name'] + ' on ' + stats['player_name'];
+											updateNewsFeed(stats['player_name'],useText,'neutral');
+										} else {
+											console.log('**** socket.on.use-item.get.stats failed: ',err.message);
+										}});
+								} else {
+									console.log('**** socket.on.use-item.get.session failed:',err.message);
+								}
+							});
 						} else {
 							console.log('**** socket.on.use-item.useItem failed:',err.message);
 						}
-						
 					});
 				} else {
 					console.log('**** socket.on.use-item.lookupItem failed:',err.message);
@@ -203,7 +239,6 @@ module.exports = function(io) {
 				if(i > -1) {
 					var player_id = h.substring(i+8,h.lastIndexOf('/'));
 					var player_name = h.substring(h.lastIndexOf('/')+1);
-					console.log('id:',player_id,' name:',player_name);
 					socket.broadcast.emit('player left party',parseInt(player_id));
 					updateNewsFeed(player_name,'left the session!','neutral');
 				}
@@ -215,7 +250,6 @@ module.exports = function(io) {
 			if(session==0){
 				socket.emit('heres your stats',stats);
 			} else {
-				console.log('sending to session ',session, ' ', stats);
 				socket.broadcast.to(session).emit('heres your stats',stats);
 				socket.emit('heres your stats',stats);//this sends back to the sender (gm) the new stats
 			}
@@ -232,7 +266,6 @@ module.exports = function(io) {
 			if(session==0){
 				socket.emit('heres your items',items);
 			} else {
-				console.log('sending to session ',session, ' these items:', items);
 				socket.broadcast.to(session).emit('heres your items',items);
 				socket.emit('heres your items',items); //this sends back to the sender gm the new items
 			}
@@ -244,7 +277,7 @@ module.exports = function(io) {
 			} else {
 				console.log('sending to session ',session, ' this item:', item);
 				socket.broadcast.to(session).emit('heres your item',item);
-				socket.emit('heres your item',item); //this sends back to the sender gm the new items
+				//socket.emit('heres your item',item); //this sends back to the sender gm the new items
 			}
 		}
 
@@ -253,7 +286,6 @@ module.exports = function(io) {
 			var html ='<div id=item class='+type+' style="display:none">';
 			if(itemKey){
 				html+= '<p>'+playerName + ' ' + action+' <a id=\''+ itemKey['pickup_key']+'\' href=# onclick="pickupItem(\''+itemKey['item_name']+'\','+ itemKey['item_id'] +',\''+itemKey['pickup_key'] +'\')" >'+itemKey['item_name']+'</a></p></div>';
-				console.log(html);
 				io.emit('feed updated',html);
 				
 			} else {

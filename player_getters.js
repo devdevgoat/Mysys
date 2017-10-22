@@ -39,10 +39,8 @@
 		mysql.record('user_has_player',{session: session})
 			.then(function(row){
 				if(row){
-					console.log('Session was in game');
 					callback(null,{'user_id':row['user_id'],'player_id':row['player_id']});
 				} else {
-					console.log('not a game disconnect');
 					callback(null,false);
 				} 
 			})
@@ -55,7 +53,6 @@
 	exports.stats = function (playerId, callback) {
 		mysql.record('players',{player_id:playerId})
 			.then(function(player){
-			    console.log('check out these stats', player);
 			    callback(null,player);
 			})
 			.catch(function(err){
@@ -101,7 +98,6 @@
 		items.item_id=player_items.item_id where pickup_key= ?';
 		mysql.query(sql,[itemKey['pickup_key']])
 		    .then(function(item){
-		    	console.log(item);
 		        callback(null,item);
 		    })
 		    .catch(function(err){
@@ -128,7 +124,6 @@
 		var ins = [playerId];
 		mysql.query(sql, ins)
 		    .then(function(myItems){
-		    	console.log(sql,'|',ins,'|',myItems);
 		    	callback(null, myItems);
 		        
 		    })

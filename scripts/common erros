@@ -1,0 +1,9 @@
+common erros
+
+: id not defined in table
+	print the where clause
+no error, but table not updating
+	print the where clause, something is undefined
+	parseInt(str,10) on server /parseInt(str) on client
+\ invalid character
+	remove trailing spaces affer escase
