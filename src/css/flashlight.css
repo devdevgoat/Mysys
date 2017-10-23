@@ -1,0 +1,10 @@
+.flashlight {
+  position:absolute;
+  z-index:-1;
+  height:300px;
+  width:300px;
+  border-radius:150px;
+  background-color:white;
+  box-shadow:1px 1px 100px #ffef73;
+  cursor:poiner;}
+
